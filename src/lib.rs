@@ -32,7 +32,6 @@ pub mod cache;
 
 pub use crate::font::TrueTypeFont;
 
-
 pub trait F32NoStd {
     fn floor(self) -> f32;
     fn ceil(self) -> f32;
