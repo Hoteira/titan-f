@@ -1,0 +1,453 @@
+use crate::font::{get_i16_be, get_u16_be, TrueTypeFont};
+use crate::rasterizer::point::Contour;
+use crate::tables::cmap::SupportedCmapFormats::{Format0, Format12, Format4, Format6};
+use crate::tables::glyf::ProtoGlyph::{Composite, Simple};
+use crate::tables::loca::LocaTable;
+
+use crate::Vec;
+
+pub const WE_HAVE_A_SCALE: u16 = 0x0008;
+pub const WE_HAVE_AN_X_AND_Y_SCALE: u16 = 0x0040;
+pub const WE_HAVE_A_TWO_BY_TWO: u16 = 0x0080;
+pub const ARGS_ARE_XY_VALUES: u16 = 0x0002;
+const ARGS_ARE_WORDS: u16 = 0x0001;
+const MORE_COMPONENTS: u16 = 0x0020;
+const WE_HAVE_INSTRUCTIONS: u16 = 0x0100;
+const ROUND_XY_TO_GRID: u16 = 0x0004;
+
+#[derive(Debug, Clone)]
+pub struct SimpleGlyph {
+    pub _number_of_contours: i16,
+    pub x_min: i16,
+    pub y_min: i16,
+    pub x_max: i16,
+    pub y_max: i16,
+    pub end_pts_of_contours: Vec<u16>,
+    pub instruction_length: u16,
+    pub instructions: Vec<u8>,
+    pub flags: Vec<u8>,
+    pub x_coordinates: Vec<i16>,
+    pub y_coordinates: Vec<i16>,
+    pub points: Vec<Contour>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CompositeGlyph {
+    pub number_of_contours: i16,
+    pub x_min: i16,
+    pub y_min: i16,
+    pub x_max: i16,
+    pub y_max: i16,
+    pub components: Vec<CompositeComponent>,
+    pub end_pts_of_contours: Vec<u16>,
+    pub instructions: Vec<u8>,
+    pub points: Vec<Contour>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CompositeComponent {
+    pub flags: u16,
+    pub glyph_index: u16,
+    pub argument1: i16,
+    pub argument2: i16,
+    pub scale: Option<f32>,
+    pub x_scale: Option<f32>,
+    pub y_scale: Option<f32>,
+    pub scale_01: Option<f32>,
+    pub scale_10: Option<f32>,
+}
+
+pub struct Glyph {
+    pub points: Vec<Contour>,
+    pub x_min: i16,
+    pub y_min: i16,
+    pub x_max: i16,
+    pub y_max: i16,
+}
+
+#[derive(Debug, Clone)]
+pub enum ProtoGlyph {
+    Simple(SimpleGlyph),
+    Composite(CompositeGlyph),
+    Empty,
+}
+
+impl ProtoGlyph {
+    pub fn finalize(&self) -> Glyph {
+        match self {
+            Simple(SimpleGlyph { points, x_min, y_min, x_max, y_max, .. }) | Composite(CompositeGlyph { points, x_min, y_min, x_max, y_max, .. }) => {
+                Glyph {
+                    points: points.clone(),
+                    x_min: *x_min,
+                    y_min: *y_min,
+                    x_max: *x_max,
+                    y_max: *y_max,
+                }
+            }
+
+            _ => {
+                Glyph::new()
+            }
+        }
+    }
+}
+
+impl Glyph {
+    pub fn new() -> Self {
+        Glyph {
+            points: Vec::new(),
+            x_min: 0,
+            y_min: 0,
+            x_max: 0,
+            y_max: 0,
+        }
+    }
+}
+
+impl ProtoGlyph {
+    pub fn get_x_min(&self) -> i16 {
+        match self {
+            ProtoGlyph::Simple(glyph) => glyph.x_min,
+            ProtoGlyph::Composite(glyph) => glyph.x_min,
+            ProtoGlyph::Empty => 0,
+        }
+    }
+
+    pub fn get_x_max(&self) -> i16 {
+        match self {
+            ProtoGlyph::Simple(glyph) => glyph.x_max,
+            ProtoGlyph::Composite(glyph) => glyph.x_max,
+            ProtoGlyph::Empty => 0,
+        }
+    }
+
+    pub fn get_y_min(&self) -> i16 {
+        match self {
+            ProtoGlyph::Simple(glyph) => glyph.y_min,
+            ProtoGlyph::Composite(glyph) => glyph.y_min,
+            ProtoGlyph::Empty => 0,
+        }
+    }
+
+    pub fn get_y_max(&self) -> i16 {
+        match self {
+            ProtoGlyph::Simple(glyph) => glyph.y_max,
+            ProtoGlyph::Composite(glyph) => glyph.y_max,
+            ProtoGlyph::Empty => 0,
+        }
+    }
+
+    pub fn get_contour_end_points(&self) -> Vec<u16> {
+        match self {
+            ProtoGlyph::Simple(glyph) => glyph.end_pts_of_contours.clone(),
+            ProtoGlyph::Composite(glyph) => glyph.end_pts_of_contours.clone(),
+            ProtoGlyph::Empty => Vec::new(),
+        }
+    }
+}
+
+impl TrueTypeFont {
+    pub fn load_glyf(&mut self) {
+        for table in &self.tables {
+            if table.table_tag == "glyf".as_bytes() {
+                self.glyf = *table;
+
+                return;
+            }
+        }
+
+        panic!("GLYF table not found");
+    }
+
+    pub fn get_glyph(&self, font_bytes: &[u8], glyph_id: u32) -> ProtoGlyph {
+        let (start_offset, end_offset) = match &self.loca {
+            LocaTable::Short(offsets, ..) => {
+                let start = offsets[glyph_id as usize] as u32 * 2;
+                let end = offsets[glyph_id as usize + 1] as u32 * 2;
+                (start, end)
+            },
+
+            LocaTable::Long(offsets) => {
+                let start = offsets[glyph_id as usize];
+                let end = offsets[glyph_id as usize + 1];
+                (start, end)
+            }
+        };
+
+        let glyf_length = end_offset as usize - start_offset as usize;
+        let glyf_offset = self.glyf.offset as usize + start_offset as usize;
+
+        if glyf_length == 0 { return ProtoGlyph::Empty; }
+
+        let contours = get_i16_be(font_bytes.as_ptr(), glyf_offset as isize);
+
+        if contours >= 0 {
+            let mut glyph = SimpleGlyph {
+                _number_of_contours: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize),
+                x_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 2),
+                y_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 4),
+                x_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 6),
+                y_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 8),
+                end_pts_of_contours: Vec::new(),
+                instruction_length: 0,
+                instructions: Vec::new(),
+                flags: Vec::new(),
+                x_coordinates: Vec::new(),
+                y_coordinates: Vec::new(),
+                points: Vec::new(),
+            };
+
+            let mut offset = glyf_offset + 10;
+            for _i in 0..glyph._number_of_contours as usize {
+                let contour = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                glyph.end_pts_of_contours.push(contour);
+                offset += 2;
+            }
+
+            glyph.instruction_length = get_u16_be(font_bytes.as_ptr(), offset as isize);
+            offset += 2;
+
+            glyph.instructions.extend_from_slice(&font_bytes[offset..offset + glyph.instruction_length as usize]);
+            offset += glyph.instruction_length as usize;
+
+
+            let num_points = if glyph.end_pts_of_contours.is_empty() {
+                0
+            } else {
+                glyph.end_pts_of_contours.last().unwrap() + 1
+            } as usize;
+
+            glyph.end_pts_of_contours.reserve(glyph._number_of_contours as usize);
+            glyph.instructions.reserve(glyph.instruction_length as usize);
+            glyph.flags.reserve(num_points);
+            glyph.x_coordinates.reserve(num_points);
+            glyph.y_coordinates.reserve(num_points);
+
+
+            let mut flags_read = 0;
+            while flags_read < num_points {
+                let flag = font_bytes[offset];
+                glyph.flags.push(flag);
+                offset += 1;
+                flags_read += 1;
+
+                if flag & 0x08 != 0 {
+                    let repeat_count = font_bytes[offset] as usize;
+                    offset += 1;
+                    for _ in 0..repeat_count {
+                        glyph.flags.push(flag);
+                        flags_read += 1;
+                    }
+                }
+            }
+
+            let mut x_coord = 0_i16;
+            for i in 0..num_points {
+                let flag = glyph.flags[i];
+                if flag & 0x02 != 0 {
+                    let delta = font_bytes[offset] as i16;
+                    offset += 1;
+                    if flag & 0x10 != 0 {
+                        x_coord += delta;
+                    } else {
+                        x_coord -= delta;
+                    }
+                } else if flag & 0x10 == 0 {
+                    let delta = get_i16_be(font_bytes.as_ptr(), offset as isize);
+                    offset += 2;
+                    x_coord += delta;
+                }
+
+                glyph.x_coordinates.push(x_coord);
+            }
+
+            let mut y_coord = 0_i16;
+            for i in 0..num_points {
+                let flag = glyph.flags[i];
+                if flag & 0x04 != 0 {
+                    let delta = font_bytes[offset] as i16;
+                    offset += 1;
+
+                    if flag & 0x20 != 0 {
+                        y_coord += delta;
+                    } else {
+                        y_coord -= delta;
+                    }
+
+                } else if flag & 0x20 == 0 {
+                    let delta = get_i16_be(font_bytes.as_ptr(), offset as isize);
+                    offset += 2;
+                    y_coord += delta;
+                }
+
+                glyph.y_coordinates.push(y_coord);
+            }
+
+            ProtoGlyph::Simple(glyph)
+        } else {
+            let mut glyph = CompositeGlyph {
+                number_of_contours: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize),
+                x_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 2),
+                y_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 4),
+                x_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 6),
+                y_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 8),
+                components: Vec::new(),
+                instructions: Vec::new(),
+                end_pts_of_contours: Vec::new(),
+                points: Vec::new(),
+            };
+
+            let mut offset = glyf_offset + 10;
+
+            loop {
+                let flags = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                offset += 2;
+
+                let glyph_index = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                offset += 2;
+
+                let mut component = CompositeComponent {
+                    flags,
+                    glyph_index,
+                    argument1: 0,
+                    argument2: 0,
+                    scale: None,
+                    x_scale: None,
+                    y_scale: None,
+                    scale_01: None,
+                    scale_10: None,
+                };
+
+                if flags & ARGS_ARE_WORDS != 0 {
+                    component.argument1 = get_i16_be(font_bytes.as_ptr(), offset as isize);
+                    component.argument2 = get_i16_be(font_bytes.as_ptr(), offset as isize + 2);
+                    offset += 4;
+                } else {
+                    component.argument1 = font_bytes[offset] as i8 as i16;
+                    component.argument2 = font_bytes[offset + 1] as i8 as i16;
+                    offset += 2;
+                }
+
+                if flags & WE_HAVE_A_SCALE != 0 {
+                    component.scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
+                    offset += 2;
+                } else if flags & WE_HAVE_AN_X_AND_Y_SCALE != 0 {
+                    component.x_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
+                    component.y_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
+                    offset += 4;
+                } else if flags & WE_HAVE_A_TWO_BY_TWO != 0 {
+                    component.x_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
+                    component.scale_01 = Some(get_i16_be(font_bytes.as_ptr(), offset as isize + 2) as f32 / 16384.0);
+                    component.scale_10 = Some(get_i16_be(font_bytes.as_ptr(), offset as isize + 4) as f32 / 16384.0);
+                    component.y_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize + 6) as f32 / 16384.0);
+                    offset += 8;
+                }
+
+                glyph.components.push(component);
+
+                if flags & MORE_COMPONENTS == 0 {
+                    break;
+                }
+            }
+
+            if !glyph.components.is_empty() && glyph.components.last().unwrap().flags & WE_HAVE_INSTRUCTIONS != 0 {
+                let instruction_length = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                offset += 2;
+
+                for i in 0..instruction_length as usize {
+                    glyph.instructions.push(font_bytes[offset + i]);
+                }
+            }
+
+            ProtoGlyph::Composite(glyph)
+        }
+    }
+
+    pub fn cache_all_glyphs(&mut self, font_bytes: &[u8]) {
+        match &self.cmap.subtables[0] {
+
+            Format0 { data, .. } => {
+
+                let mut glyph_data = self.get_glyph(font_bytes, 0);
+                self.glyph_data_table.insert(0, self.load_points(&mut glyph_data, &self, &font_bytes));
+
+                for codepoint in 0..256 {
+                    if let Some(ch) = char::from_u32(codepoint) {
+                        let glyph_id = data.glyph_id_array[codepoint as usize] as u32;
+                        let mut glyph_data = self.get_glyph(font_bytes, glyph_id);
+
+                        if glyph_id != 0 {
+                            self.glyph_id_table.insert(ch, glyph_id);
+                            self.glyph_data_table.insert(glyph_id, self.load_points(&mut glyph_data, &self, &font_bytes));
+                        }
+                    }
+                }
+            }
+
+            Format4 { data, ..} => {
+
+                let mut glyph_data = self.get_glyph(font_bytes, 0);
+                self.glyph_data_table.insert(0, self.load_points(&mut glyph_data, &self, &font_bytes));
+
+                for seg_idx in 0..data.seg_count_x2 / 2 {
+                    let start = data.start_count[seg_idx as usize];
+                    let end = data.end_count[seg_idx as usize];
+
+                    for codepoint in start..=end {
+                        if let Some(ch) = char::from_u32(codepoint as u32) {
+                            let glyph_id = self.get_glyph_id(ch);
+                            let mut glyph_data = self.get_glyph(font_bytes, glyph_id);
+
+                            if glyph_id != 0 {
+                                self.glyph_id_table.insert(ch, glyph_id);
+                                self.glyph_data_table.insert(glyph_id, self.load_points(&mut glyph_data, &self, &font_bytes));
+                            }
+                        }
+                    }
+                }
+            }
+
+            Format6 { data, .. } => {
+
+                let mut glyph_data = self.get_glyph(font_bytes, 0);
+                self.glyph_data_table.insert(0, self.load_points(&mut glyph_data, &self, &font_bytes));
+
+                for i in 0..data.entry_count {
+                    let codepoint = data.first_code + i;
+                    if let Some(ch) = char::from_u32(codepoint as u32) {
+                        let glyph_id = data.glyph_id_array[i as usize] as u32;
+                        let mut glyph_data = self.get_glyph(font_bytes, glyph_id);
+
+                        if glyph_id != 0 {
+                            self.glyph_id_table.insert(ch, glyph_id);
+                            self.glyph_data_table.insert(glyph_id, self.load_points(&mut glyph_data, &self, &font_bytes));
+                        }
+                    }
+                }
+            }
+
+            Format12 { data, .. } => {
+
+                let mut glyph_data = self.get_glyph(font_bytes, 0);
+                self.glyph_data_table.insert(0, self.load_points(&mut glyph_data, &self, &font_bytes));
+
+                for group in &data.groups {
+                    for codepoint in group.start_char_code..=group.end_char_code {
+                        if let Some(ch) = char::from_u32(codepoint) {
+                            let offset = (codepoint - group.start_char_code) as usize;
+                            let glyph_id = group.start_glyph_id + offset as u32;
+                            let mut glyph_data = self.get_glyph(font_bytes, glyph_id);
+
+                            if glyph_id != 0 {
+                                self.glyph_id_table.insert(ch, glyph_id);
+                                self.glyph_data_table.insert(glyph_id, self.load_points(&mut glyph_data, &self, &font_bytes));
+                            }
+                        }
+                    }
+                }
+            }
+
+            _ => {},
+        }
+    }
+}
