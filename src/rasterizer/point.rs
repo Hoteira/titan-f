@@ -192,6 +192,7 @@ fn expand_flags(raw_flags: &[u8], num_points: usize) -> Vec<u8> {
         let flag = raw_flags[i];
         expanded.push(flag);
         i += 1;
+
         if flag & 0x08 != 0 {
             if i >= raw_flags.len() {
                 break;
