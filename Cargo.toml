@@ -1,15 +1,28 @@
 [package]
-name = "tforge"
+name = "trueforge"
 authors = ["hoteira"]
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+fontdue = "0.9.3"
 
 [lib]
-name = "tforge"
+name = "trueforge"
 path = "src/lib.rs"
+
+[dev-dependencies]
+fontdue = "0.9"
+rusttype = "0.9"
+ab_glyph = "0.2"
+criterion = { version = "0.7", features = ["html_reports"] }
 
 [features]
 default = ["std"]
 std = []
+
+[[bench]]
+name = "man"
+harness = false
+
+

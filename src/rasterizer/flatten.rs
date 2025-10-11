@@ -60,12 +60,9 @@ pub fn check_line(p0: &Point, p1: &Point, lines: &mut Vec<Line>, scale: f32, y_m
 
 #[inline(always)]
 pub fn flatten_quadratic(p0: &Point, p1: &Point, p2: &Point, lines: &mut Vec<Line>, scale: f32, y_max: f32, x_min: f32) {
-    let p0x = (p0.x as f32 - x_min) * scale;
-    let p0y = (y_max - p0.y as f32) * scale;
-    let p1x = (p1.x as f32 - x_min) * scale;
-    let p1y = (y_max - p1.y as f32) * scale;
-    let p2x = (p2.x as f32 - x_min) * scale;
-    let p2y = (y_max - p2.y as f32) * scale;
+    let (p0x, p0y) = scale_point(p0, scale, y_max, x_min);
+    let (p1x, p1y) = scale_point(p1, scale, y_max, x_min);
+    let (p2x, p2y) = scale_point(p2, scale, y_max, x_min);
 
     let curvature = ((p1x - (p0x + p2x) * 0.5).abs() + (p1y - (p0y + p2y) * 0.5).abs()) * scale;
 
