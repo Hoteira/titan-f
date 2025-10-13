@@ -8,8 +8,8 @@ fn benchmark_fonts(c: &mut Criterion) {
     let mut group = c.benchmark_group("glyph_rendering");
 
     // Configure the group
-    group.sample_size(10000);           // Number of samples Criterion takes
-    group.warm_up_time(std::time::Duration::from_secs(3));  // Warm-up time
+    group.sample_size(1000);           // Number of samples Criterion takes
+    group.warm_up_time(std::time::Duration::from_secs(5));  // Warm-up time
 
     let mut font_0 = TrueTypeFont::load_font(include_bytes!("../Roboto-Medium.ttf"));
     font_0.can_cache = false;

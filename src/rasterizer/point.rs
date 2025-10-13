@@ -32,7 +32,6 @@ impl Contour {
 
 impl TrueTypeFont {
     pub fn load_points(&self, glyph: &mut ProtoGlyph, font: &TrueTypeFont, font_bytes: &[u8]) -> Glyph {
-
         match glyph {
             ProtoGlyph::Simple(g) => {
                 let num_points = g.end_pts_of_contours.last().map(|&e| (e + 1) as usize).unwrap_or(0);
@@ -42,11 +41,13 @@ impl TrueTypeFont {
 
                 let mut contour_start = 0;
                 for i in 0..g.end_pts_of_contours.len() {
-                    let mut contour = if i == 0 {
-                        Contour::new(g.end_pts_of_contours[i] as usize + 1)
+                    let contour_size = if i == 0 {
+                        g.end_pts_of_contours[i] as usize + 1
                     } else {
-                        Contour::new((g.end_pts_of_contours[i] - g.end_pts_of_contours[i-1]) as usize)
+                        (g.end_pts_of_contours[i] - g.end_pts_of_contours[i - 1]) as usize
                     };
+                    // Add +1 to capacity for the closing point
+                    let mut contour = Contour::new(contour_size + 1);
 
                     for j in contour_start..=g.end_pts_of_contours[i] as usize {
                         contour.points.push(Point {
@@ -54,6 +55,12 @@ impl TrueTypeFont {
                             y: g.y_coordinates[j],
                             on_curve: (expanded_flags[j] & 0x01) != 0,
                         });
+                    }
+
+                    // Append the first point as the last point to close the contour
+                    if !contour.points.is_empty() {
+                        let first_point = contour.points[0];
+                        contour.points.push(first_point);
                     }
 
                     contour_start = g.end_pts_of_contours[i] as usize + 1;
@@ -88,18 +95,26 @@ pub fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeComponen
 
                 let mut contour_start = 0;
                 for i in 0..g.end_pts_of_contours.len() {
-                    let mut contour = if i == 0 {
-                        Contour::new(g.end_pts_of_contours[i] as usize + 1)
+                    let contour_size = if i == 0 {
+                        g.end_pts_of_contours[i] as usize + 1
                     } else {
-                        Contour::new((g.end_pts_of_contours[i] - g.end_pts_of_contours[i-1]) as usize)
+                        (g.end_pts_of_contours[i] - g.end_pts_of_contours[i - 1]) as usize
                     };
+                    // Add +1 to capacity for the closing point
+                    let mut contour = Contour::new(contour_size + 1);
 
                     for j in contour_start..=g.end_pts_of_contours[i] as usize {
                         contour.points.push(Point {
                             x: g.x_coordinates[j],
                             y: g.y_coordinates[j],
-                            on_curve: &expanded_flags[j] & 0x01 != 0,
+                            on_curve: expanded_flags[j] & 0x01 != 0,
                         });
+                    }
+
+                    // Append the first point as the last point to close the contour
+                    if !contour.points.is_empty() {
+                        let first_point = contour.points[0];
+                        contour.points.push(first_point);
                     }
 
                     transform_points(&mut contour.points, component);
