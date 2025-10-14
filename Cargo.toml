@@ -21,7 +21,7 @@ default = ["std"]
 std = []
 
 [[bench]]
-name = "man"
+name = "font_bench"
 harness = false
 
 

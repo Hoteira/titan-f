@@ -14,7 +14,6 @@ use core::mem::size_of;
 
 use crate::Vec;
 use crate::Map;
-
 use crate::tables::cmap::CmapTable;
 use crate::tables::glyf::Glyph;
 use crate::tables::head::HeadTable;
@@ -70,7 +69,7 @@ pub struct TrueTypeFont {
 
     pub cache: crate::cache::Cache,
     pub can_cache: bool,
-
+    
     pub winding_buffer: Vec<f32>,
     pub bitmap_buffer: Vec<u8>,
 }

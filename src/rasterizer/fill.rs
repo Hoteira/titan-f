@@ -1,9 +1,6 @@
 use crate::Vec;
-use crate::vec;
 
-pub fn filler(width: usize, height: usize, windings: &[f32], bitmap: &mut Vec<u8>) {
-    bitmap.resize(width * height, 0);
-
+pub fn filler(width: usize, height: usize, windings: &[f32], bitmap: &mut [u8]) {
     for y in 0..height {
         let row_start = y * width;
         let mut sum = 0.0;

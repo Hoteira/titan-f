@@ -84,7 +84,7 @@ fn benchmark_fonts(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("tforge", size), size, |b, &size| {
             b.iter(|| {
                 for c in text.chars() {
-                    let (metrics, bitmap) = font_0.get_char(black_box(c), black_box(size));
+                    let (metrics, bitmap) = font_0.get_char::<false>(black_box(c), black_box(size));
                 }
             });
         });
