@@ -100,7 +100,7 @@ pub fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeComponen
                     } else {
                         (g.end_pts_of_contours[i] - g.end_pts_of_contours[i - 1]) as usize
                     };
-                    // Add +1 to capacity for the closing point
+                    
                     let mut contour = Contour::new(contour_size + 1);
 
                     for j in contour_start..=g.end_pts_of_contours[i] as usize {
@@ -110,8 +110,7 @@ pub fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeComponen
                             on_curve: expanded_flags[j] & 0x01 != 0,
                         });
                     }
-
-                    // Append the first point as the last point to close the contour
+                    
                     if !contour.points.is_empty() {
                         let first_point = contour.points[0];
                         contour.points.push(first_point);

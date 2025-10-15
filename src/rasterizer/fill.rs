@@ -1,20 +1,20 @@
 use crate::Vec;
 
-pub fn filler(width: usize, height: usize, windings: &[f32], bitmap: &mut [u8]) {
+pub fn filler(width: usize, height: usize, windings: &[i16], bitmap: &mut [u8]) {
+
+    if windings.len() == 0 {
+        return;
+    }
+
+    let mut idx = 0;
     for y in 0..height {
-        let row_start = y * width;
-        let mut sum = 0.0;
-
+        let mut sum = 0i32;
         for x in 0..width {
-            let idx = row_start + x;
-            sum += windings[idx];
+            sum += windings[idx] as i32;
 
-            if sum.abs() < 0.05 {
-                sum = 0.0;
-            }
-
-            let alpha = sum.abs().min(1.0);
+            let alpha = (sum.abs() as f32 / 256.0).min(1.0);
             bitmap[idx] = (alpha * 255.0) as u8;
+            idx += 1;
         }
     }
 }

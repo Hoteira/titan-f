@@ -7,12 +7,10 @@ use rusttype::{Scale, point};
 fn benchmark_fonts(c: &mut Criterion) {
     let mut group = c.benchmark_group("glyph_rendering");
 
-    // Configure the group
-    group.sample_size(1000);           // Number of samples Criterion takes
-    group.warm_up_time(std::time::Duration::from_secs(5));  // Warm-up time
+    group.sample_size(10);
+    group.warm_up_time(std::time::Duration::from_secs(1));
 
     let mut font_0 = TrueTypeFont::load_font(include_bytes!("../Roboto-Medium.ttf"));
-    font_0.can_cache = false;
 
     let font_1 = std::fs::read("Roboto-Medium.ttf").unwrap();
     let font_1 = fontdue::Font::from_bytes(font_1.as_slice(), Default::default()).unwrap();
@@ -23,14 +21,16 @@ fn benchmark_fonts(c: &mut Criterion) {
     let font_3 = std::fs::read("Roboto-Medium.ttf").unwrap();
     let font_3 = ab_glyph::FontRef::try_from_slice(&font_3).unwrap();
 
-    let text = "The quick brown fox jumps over the lazy dog. 0123456789";
+    let text = "The quick brown fox jumps over the lazy dog. 0123456789. ,;!?-:()[]{}<>|/@#$%^&*~`+=\\'\".
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec dui vel tortor interdum euismod. Integer vitae justo eu orci auctor maximus at vitae mauris. Cras sit amet odio pharetra, posuere est gravida, convallis libero. Phasellus tincidunt velit ante, vel fermentum lorem tempus vel. Sed consectetur massa eget facilisis maximus. Suspendisse potenti. Nam non diam sit amet magna mollis placerat id nec arcu. Nulla mattis viverra imperdiet. Aliquam molestie vulputate sapien, in rutrum ex hendrerit sit amet. Integer tempor lorem sed turpis finibus gravida. Duis vel dapibus urna. Etiam tempus vulputate turpis, et tempus orci ullamcorper a. Nam at velit.";
 
     // Test different sizes
-    for size in [16, 24, 48, 72, 120].iter() {
+    for size in [1000, 12, 16, 24, 48, 72, 120, 250].iter() {
         group.bench_with_input(BenchmarkId::new("fontdue", size), size, |b, &size| {
             b.iter(|| {
                 for c in text.chars() {
                     let (metrics, bitmap) = font_1.rasterize(black_box(c), black_box(size as f32));
+                    black_box(&bitmap);
                 }
             });
         });
@@ -84,7 +84,8 @@ fn benchmark_fonts(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("tforge", size), size, |b, &size| {
             b.iter(|| {
                 for c in text.chars() {
-                    let (metrics, bitmap) = font_0.get_char::<false>(black_box(c), black_box(size));
+                    let (metrics, b) = font_0.get_char::<false>(black_box(c), black_box(size));
+                    black_box(&b);
                 }
             });
         });

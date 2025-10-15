@@ -10,8 +10,6 @@ use std::mem::size_of;
 
 #[cfg(not(feature = "std"))]
 use core::mem::size_of;
-
-
 use crate::Vec;
 use crate::Map;
 use crate::tables::cmap::CmapTable;
@@ -68,9 +66,8 @@ pub struct TrueTypeFont {
     pub kern_table: Map<(u32, u32), i16>,
 
     pub cache: crate::cache::Cache,
-    pub can_cache: bool,
-    
-    pub winding_buffer: Vec<f32>,
+
+    pub winding_buffer: Vec<i16>,
     pub bitmap_buffer: Vec<u8>,
 }
 
@@ -106,7 +103,6 @@ impl TrueTypeFont {
             kern_table: Map::new(),
 
             cache: crate::cache::Cache::new(),
-            can_cache: true,
 
             winding_buffer: Vec::new(),
             bitmap_buffer: Vec::new(),

@@ -32,20 +32,20 @@ impl TrueTypeFont {
             }
         }
 
-        //test
         let glyph = self
             .glyph_data_table
             .get(&id)
             .unwrap_or(self.glyph_data_table.get(&0).unwrap());
 
-        let width = ((glyph.x_max - glyph.x_min) as f32 * scale + 0.999) as usize;
-        let height = ((glyph.y_max - glyph.y_min) as f32 * scale + 0.999) as usize;
+        let width = (((glyph.x_max - glyph.x_min) as f32 * scale) as usize) + 2;
+        let height = (((glyph.y_max - glyph.y_min) as f32 * scale) as usize) + 2;
         let baseline = (glyph.y_min as f32 * scale) as isize;
 
-        if self.winding_buffer.len() < width * height {
-            self.winding_buffer = vec![0.0f32; width * height];
+        if self.winding_buffer.capacity() < width * height {
+            self.winding_buffer = vec![0; width * height];
         } else {
-            self.winding_buffer[..width * height].fill(0.0);
+            self.winding_buffer.truncate(width * height);
+            self.winding_buffer.fill(0);
         }
 
         flatten::make_contour(
@@ -81,7 +81,6 @@ impl TrueTypeFont {
 
         (metrics, self.bitmap_buffer.clone())
     }
-
 }
 
 
