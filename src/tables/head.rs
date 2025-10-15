@@ -12,7 +12,7 @@ pub struct HeadTable {
     pub _minor_version: u16,
     pub _font_revision: u32,
     pub _checksum_adjustment: u32,
-    pub _magic_number: u32,            // 0x5F0F3CF5
+    pub _magic_number: u32, // 0x5F0F3CF5
     pub _flags: u16,
     pub units_per_em: u16,
     pub _created: i64,
