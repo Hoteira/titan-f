@@ -10,18 +10,7 @@ edition = "2024"
 name = "titanf"
 path = "src/lib.rs"
 
-[dev-dependencies]
-fontdue = "0.9"
-rusttype = "0.9"
-ab_glyph = "0.2"
-criterion = { version = "0.7", features = ["html_reports"] }
-
 [features]
 default = ["std"]
 std = []
-
-[[bench]]
-name = "font_bench"
-harness = false
-
 
