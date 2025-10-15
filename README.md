@@ -15,7 +15,7 @@
 
 ## Overview
 
-TitanForg (in short TitanF) is a high-performance CPU-based font rasterizer designed for exceptional scalability. While most rasterizers experience severe performance degradation when rendering large batches of text, TitanF maintains near-constant per-character performance whether rendering 1 glyph or 1 million.
+TitanForge (in short TitanF) is a high-performance CPU-based font rasterizer designed for exceptional scalability. While most rasterizers experience severe performance degradation when rendering large batches of text, TitanF maintains near-constant per-character performance whether rendering 1 glyph or 1 million.
 
 To stay dependency-free, it includes its own minimal TrueType parser handling CMAP, GLYF, HEAD, HHEA, HMTX, KERN, LOCA, and MAXP tables.
 
@@ -150,3 +150,4 @@ Contributions are welcome! Please open an issue or PR on GitHub.
 <div align="center">
   <sub>Built with performance in mind. Zero dependencies. Pure Rust.</sub>
 </div>
+
