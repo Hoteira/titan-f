@@ -1,7 +1,7 @@
 <div align="center">
   <img src="img/icon.png" alt="Fontkit Logo" width="120" height="120">
   
-  # TrueForge
+  # TitanForge
   
   **A fast, lightweight font rasterizer written in pure Rust**
   
@@ -37,4 +37,5 @@ To stay dependency free it also includes its own basic parser for True Type Font
 - 🎨 **Anti-aliased** — Smooth, high-quality glyph rendering
 
 ## Performance
+
 
