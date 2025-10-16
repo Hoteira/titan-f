@@ -57,7 +57,7 @@ Criterion benchmark rendering with NotoSansSC-Medium:
 | 120pt | **806.57µs** | 7.63ms | 17.022ms | 14.7ms |
 | 250pt | **4.6ms** | 29.36ms | 50.18ms | 50.51ms |
 
-**The performance gap widens with batch size.** While competitors slow down exponentially, TitanF maintains near-constant per-character performance.
+**The performance gap widens with batch size.** While competitors slow down exponentially, TitanF maintains near-constant per-character performance up until 1-10 million glyphs.
 
 ---
 
@@ -135,3 +135,4 @@ Please open an issue or PR on GitHub.
   <sub> Pure Rust  •  Zero Dependencies  •  no_std</sub>
   
 </div>
+
