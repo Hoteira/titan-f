@@ -1,7 +1,3 @@
-
-#[cfg(feature = "std")]
-use std::ptr::read_unaligned;
-
 #[cfg(not(feature = "std"))]
 use core::ptr::read_unaligned;
 
