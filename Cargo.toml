@@ -16,7 +16,8 @@ exclude = [
     "img/*",
     "benches/*",
     ".github/*",
-    "target/*"
+    "target/*",
+    "*.ttf"
 ]
 
 
