@@ -8,6 +8,7 @@
   [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org/)
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
   [![no_std](https://img.shields.io/badge/no__std-compatible-success.svg)](https://docs.rust-embedded.org/book/)
+  [![crates.io](https://img.shields.io/crates/v/titanf.svg)](https://crates.io/crates/titanf)
 
 </div>
 
@@ -33,7 +34,7 @@ fn main() {
 **Add to your `Cargo.toml`:**
 ```toml
 [dependencies]
-titanf = "0.1.0"
+titanf = "0.1.1"
 ```
 
 ---
@@ -128,5 +129,6 @@ Please open an issue or PR on GitHub.
 </div>
 
 
+<br>
 
 
