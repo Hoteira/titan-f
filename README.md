@@ -6,7 +6,7 @@
   **The font rasterizer that doesn't slow down**
   
   [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-  [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
   [![no_std](https://img.shields.io/badge/no__std-compatible-success.svg)](https://docs.rust-embedded.org/book/)
 
 </div>
@@ -52,7 +52,7 @@ Criterion benchmark rendering with NotoSansSC-Medium:
 | 12pt | **174µs** | 708µs | 2.71ms | 2.99ms |
 | 16pt | **190µs** | 1.01ms | 3.64ms | 2.99ms |
 | 24pt | **203µs** | 1.48ms | 3.75ms | 2.60ms |
-| 48pt | **200µs** | 1.89ms | 5.12ms | 6.00ms |
+| 48pt | **250µs** | 1.89ms | 5.12ms | 6.00ms |
 | 72pt | **1.00ms** | 4.20ms | 10.22ms | 10.55ms |
 | 120pt | **806.57µs** | 7.63ms | 17.022ms | 14.7ms |
 | 250pt | **4.6ms** | 29.36ms | 50.18ms | 50.51ms |
@@ -88,7 +88,7 @@ Criterion benchmark rendering with NotoSansSC-Medium:
 - 🚀 **Blazingly Fast** 
 - 📈 **Linear Scaling** — Performance doesn't "blow up" whether rendering 10 or 10 million glyphs
 - 🦀 **Zero Dependencies** — Pure Rust, no external crates
-- 📦 **`no_std` Compatible** — Works in kernels, bootloaders, embedded systems (just needs `alloc`)
+- 📦 **`no_std` Compatible** — Originally built for my own OS, it works fine in baremetal environments (just needs `alloc`)
 - 🎨 **Subpixel Anti-aliasing** — Smooth, high-quality glyph rendering
 - 💯 **Stable Rust** — No nightly features, no unsafe code
 - 🔧 **Built-in TrueType Parser** — Handles CMAP, GLYF, HEAD, HHEA, HMTX, KERN, LOCA, MAXP and keeps it dependency free
@@ -114,9 +114,9 @@ cargo bench
 
 ## License
 
-Dual-licensed under MIT or Apache-2.0, your choice.
+licensed under MIT
 
-See [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) for details.
+See [LICENSE-MIT](LICENSE-MIT) for details.
 
 ---
 
@@ -135,4 +135,5 @@ Please open an issue or PR on GitHub.
   <sub> Pure Rust  •  Zero Dependencies  •  no_std</sub>
   
 </div>
+
 
