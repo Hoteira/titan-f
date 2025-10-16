@@ -12,3 +12,13 @@ path = "src/lib.rs"
 default = ["std"]
 std = []
 
+[dev-dependencies]
+fontdue = "0.9.3"
+ab_glyph = "0.2.32"
+rusttype = "0.9.3"
+criterion = "0.7.0"
+
+[[bench]]
+name = "cjk_latin_bench"
+harness = false
+
