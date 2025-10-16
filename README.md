@@ -33,10 +33,7 @@ fn main() {
 **Add to your `Cargo.toml`:**
 ```toml
 [dependencies]
-titanf = { git = "https://github.com/Hoteira/titan-f/" }
-
-//It's not on crates.io as of yet so you cannot just add it as:
-//titanf = "0.1.0"
+titanf = "0.1.0"
 ```
 
 ---
@@ -129,6 +126,7 @@ Please open an issue or PR on GitHub.
   <strong>TitanF:</strong> Built for speed • Designed for scale • Zero compromises  
   <br><sub>🦀 Pure Rust • 📦 Zero Dependencies • ⚙️ no_std Compatible</sub>
 </div>
+
 
 
 
