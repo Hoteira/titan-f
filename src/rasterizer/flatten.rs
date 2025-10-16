@@ -1,4 +1,5 @@
 use crate::rasterizer::point::{Contour, Point};
+use crate::F32NoStd;
 
 #[inline(always)]
 pub fn make_contour(

@@ -8,7 +8,7 @@ fn benchmark_cjk_latin(c: &mut Criterion) {
     let mut group = c.benchmark_group("cjk_latin_scaling");
 
     // Configure group
-    group.sample_size(10);
+    group.sample_size(100);
     group.warm_up_time(std::time::Duration::from_secs(3));
     group.measurement_time(std::time::Duration::from_secs(15));
 
@@ -53,8 +53,8 @@ fn benchmark_cjk_latin(c: &mut Criterion) {
     all_chars.extend_from_slice(&cjk_chars);
     all_chars.extend_from_slice(&latin_chars);
 
-    let sizes = [12, 16, 48, 120];
-    let counts = [100, 1_000, 10_000, 100_000, 1_000_000];
+    let sizes = [12, 16, 24, 48, 72, 120, 250];
+    let counts = [1_000];
 
     for &size in &sizes {
         for &count in &counts {
