@@ -3,151 +3,135 @@
   
   # TitanF
   
-  **A fast, lightweight font rasterizer written in pure Rust**
+  **The font rasterizer that doesn't slow down**
   
   [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
   [![no_std](https://img.shields.io/badge/no__std-compatible-success.svg)](https://docs.rust-embedded.org/book/)
-  
+
 </div>
 
 ---
 
-## Overview
-
-TitanForge (in short TitanF) is a high-performance CPU-based font rasterizer designed for exceptional scalability. While most rasterizers experience severe performance degradation when rendering large batches of text, TitanF maintains near-constant per-character performance whether rendering 1 glyph or 1 million.
-
-To stay dependency-free, it includes its own minimal TrueType parser handling CMAP, GLYF, HEAD, HHEA, HMTX, KERN, LOCA, and MAXP tables.
-
-## Features
-
-- 🚀 **Exceptionally Fast** — Optimized hot paths with smart buffer reuse
-- 📈 **Linear Scaling** — Maintains per-character performance at any batch size
-- 🦀 **Zero Dependencies** — Pure Rust implementation with built-in TTF parser
-- 📦 **`no_std` Compatible** — Works in bare-metal environments with just `alloc`
-- 🎯 **Accurate** — Winding number algorithm for precise fill operations
-- 🎨 **Anti-aliased** — Smooth, high-quality glyph rendering
-- 💯 **Stable Rust** — No nightly features required
-
-## Performance
-
-### Extreme Scale Benchmark: 12 Million Characters
-
-TitanF demonstrates exceptional performance at extreme scales where other rasterizers experience catastrophic degradation:
-
-**Test conditions:**
-- 12 million characters without caching
-- Varied characters: `['@', 'A', 'g', 'W', 'i', 'M', 'j', 'Q']`
-- Varied sizes: `[12, 14, 16, 24, 58, 12, 25, 40]pt`
-
-| Rasterizer | Time | Characters/sec | vs TitanF |
-|------------|------|----------------|-----------|
-| **TitanF** | **~1.2s** | **~10M/s** | **1× (baseline)** |
-| fontdue | ~23s | ~520K/s | **~19× slower** |
-| FreeType | ~240s | ~50-200K/s | **~50-192× slower** |
-
-**Key insights:**
-- TitanF maintains **consistent performance** even with varied character dimensions and sizes
-- Buffer reuse strategy eliminates allocation overhead while gracefully handling size changes
-- Competitors' allocation-per-glyph approach causes **20-200× performance collapse** at production scales
-
-### Batch Rendering: 770 Characters (Roboto Medium)
-
-| Size | TitanF | fontdue | rusttype | ab_glyph |
-|------|---------|---------|----------|----------|
-| 12pt | 348µs | 1.33ms | 3.00ms | 2.89ms |
-| 16pt | 439µs | 1.46ms | 3.46ms | 2.98ms |
-| 24pt | 367µs | 1.65ms | 3.67ms | 3.40ms |
-| 48pt | 424µs | 2.45ms | 6.23ms | 6.00ms |
-| 72pt | 234µs | 3.25ms | 8.94ms | 5.16ms |
-| 120pt | 895µs | 3.14ms | 9.84ms | 15.0ms |
-| 250pt | 1.60ms | 19.7ms | 48.6ms | 44.2ms |
-
-At common text sizes (12-24pt), TitanF is **3-10× faster** than alternatives. The performance advantage increases dramatically with batch size due to superior memory management.
-
-### Why TitanF Scales Better
-
-Unlike traditional rasterizers that allocate fresh buffers per glyph, TitanF:
-
-1. **Reuses buffers** across same-sized glyphs (zero allocation cost after warmup)
-2. **Smart reallocation** only grows buffers when encountering larger glyphs, never shrinks
-3. **Cache-optimal layout** with sequential memory access patterns that CPUs love
-4. **Simple winding algorithm** that branch predictors and prefetchers can optimize effectively
-
-## Installation
-
-Add this to your `Cargo.toml`:
-```toml
-[dependencies]
-titanforge = "0.1.0"
-```
-
-## Usage
+## Quick Start
 ```rust
 use titanf::TrueTypeFont;
 
 fn main() {
-    let font_data = include_bytes!("path/to/font.ttf");
+    let font_data = include_bytes!("Roboto-Medium.ttf");
     let mut font = TrueTypeFont::load_font(font_data);
     
-    // Render a single character at 16pt
+    // Render a character!
     let (metrics, bitmap) = font.get_char::<false>('A', 16);
     
-    // Enable caching for repeated renders of the same character
+    //Enable the built-in cache
     let (metrics, bitmap) = font.get_char::<true>('B', 16);
-    
-    println!("Width: {}, Height: {}", metrics.width, metrics.height);
-    println!("Advance: {}, Baseline: {}", metrics.advance_width, metrics.base_line);
+    //                                      ^^^^
 }
 ```
 
-## Technical Details
-
-### Winding Number Algorithm
-
-TitanF uses a winding number approach for filling:
-1. Rasterize glyph contours into a winding buffer with subpixel precision
-2. Accumulate winding numbers across each scanline
-3. Apply non-zero winding rule for final coverage values
-4. Convert coverage to anti-aliased alpha values in a single pass
-
-This provides accurate results while maintaining simple, cache-friendly code with predictable memory access patterns.
-
-### Buffer Management
-
-The secret to TitanF's scalability:
-- Winding and bitmap buffers are allocated once per font instance
-- Same-sized glyphs reuse existing allocations with fast `memset` clear
-- Buffers only grow (never shrink) to accommodate larger glyphs as needed (can be resized if necessary by the user if necessary)
-- Zero per-glyph allocation overhead after encountering the largest glyph
-- This eliminates the 20-50× allocation overhead that plagues other rasterizers
-
-## `no_std` Support
-
-TitanF works in `no_std` environments with just `alloc`:
+**Add to your `Cargo.toml`:**
 ```toml
 [dependencies]
-titanforge = { version = "0.1.0", default-features = false, features = ["alloc"] }
+titanf = { git = "https://github.com/Hoteira/titan-f/" }
+
+//It's not on crates.io as of yet so you cannot just add it as:
+//titanf = "0.1.0"
 ```
 
-Perfect for:
-- Embedded systems
-- Operating system kernels
-- Bootloaders
-- WebAssembly
-- Any bare-metal environment with a heap allocator
+---
+
+
+
+### Batch Rendering: 1000 Characters (CJK + L)
+
+Criterion benchmark rendering with NotoSansSC-Medium:
+
+| Size | TitanF | fontdue | rusttype | ab_glyph | 
+|------|--------|---------|----------|----------|
+| 12pt | **174µs** | 708µs | 2.71ms | 2.99ms |
+| 16pt | **190µs** | 1.01ms | 3.64ms | 2.99ms |
+| 24pt | **203µs** | 1.48ms | 3.75ms | 2.60ms |
+| 48pt | **200µs** | 1.89ms | 5.12ms | 6.00ms |
+| 72pt | **1.00ms** | 4.20ms | 10.22ms | 10.55ms |
+| 120pt | **806.57µs** | 7.63ms | 17.022ms | 14.7ms |
+| 250pt | **4.6ms** | 29.36ms | 50.18ms | 50.51ms |
+
+**The performance gap widens with batch size.** While competitors slow down exponentially, TitanF maintains near-constant per-character performance.
+
+---
+
+## Why TitanF Is Fast
+
+### 1. Smart Buffer Reuse
+- Buffers allocated **once per font instance**
+- Same-sized glyphs: just `memset` and reuse (near-zero cost)
+- Larger glyphs: grow buffer once, never shrink
+- **Result: Zero allocation overhead after warmup**
+
+### 2. Cache-Optimal Memory Layout
+- Sequential memory access patterns
+- No pointer chasing or indirection
+- CPU prefetcher works perfectly
+- Data stays hot in L1/L2 cache
+
+### 3. Simple, Predictable Algorithm
+- Winding number algorithm with single-pass filling
+- No complex data structures
+- Branch predictor loves it
+- Compiler can optimize aggressively
+
+---
+
+## Features
+
+- 🚀 **Blazingly Fast** 
+- 📈 **Linear Scaling** — Performance doesn't "blow up" whether rendering 10 or 10 million glyphs
+- 🦀 **Zero Dependencies** — Pure Rust, no external crates
+- 📦 **`no_std` Compatible** — Works in kernels, bootloaders, embedded systems (just needs `alloc`)
+- 🎨 **Subpixel Anti-aliasing** — Smooth, high-quality glyph rendering
+- 💯 **Stable Rust** — No nightly features, no unsafe code
+- 🔧 **Built-in TrueType Parser** — Handles CMAP, GLYF, HEAD, HHEA, HMTX, KERN, LOCA, MAXP and keeps it dependency free
+
+---
+
+## Benchmarking Notes
+
+**Hardware:** All benchmarks run on the same machine with consistent methodology.
+
+**Methodology:**
+- Each rasterizer called with identical parameters
+- Results wrapped in `black_box()` to prevent optimization
+- Multiple runs averaged for consistency
+- No caching enabled
+
+**Reproducibility:** Benchmark code available in the repo. Run it yourself:
+```bash
+cargo bench
+```
+
+---
 
 ## License
 
-Licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Dual-licensed under MIT or Apache-2.0, your choice.
+
+See [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) for details.
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or PR on GitHub.
+Found a bug? Have a performance improvement? Contributions are welcome!
+
+Please open an issue or PR on GitHub.
 
 ---
 
 <div align="center">
-  <sub>Built with performance in mind. Zero dependencies. Pure Rust.</sub>
+  
+  **TitanF: Built for speed. Designed for scale. Zero compromises.**
+  
+  <sub> Pure Rust  •  Zero Dependencies  •  no_std</sub>
+  
 </div>
-
