@@ -42,7 +42,6 @@ titanf = { git = "https://github.com/Hoteira/titan-f/" }
 ---
 
 
-
 ### Batch Rendering: 1000 Characters (CJK + L)
 
 Criterion benchmark rendering with NotoSansSC-Medium:
