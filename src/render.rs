@@ -16,8 +16,6 @@ pub struct Metrics {
 
 impl TrueTypeFont {
     pub fn get_char<const CACHE: bool>(&mut self, c: char, size: usize) -> (Metrics, Vec<u8>) {
-        self.winding_buffer.clear();
-        self.bitmap_buffer.clear();
 
         let dpi = 96.0;
         let pixels = size as f32 * dpi / 72.0;
@@ -39,13 +37,14 @@ impl TrueTypeFont {
 
         let width = (((glyph.x_max - glyph.x_min) as f32 * scale) as usize) + 2;
         let height = (((glyph.y_max - glyph.y_min) as f32 * scale) as usize) + 2;
-        let baseline = (glyph.y_min as f32 * scale) as isize;
+        let baseline = -(glyph.y_max as f32 * scale) as isize;
 
-        if self.winding_buffer.capacity() < width * height {
-            self.winding_buffer = vec![0; width * height];
+        let required_size = width * height;
+
+        if self.winding_buffer.len() < required_size {
+            self.winding_buffer.resize(required_size, 0);
         } else {
-            self.winding_buffer.truncate(width * height);
-            self.winding_buffer.fill(0);
+            self.winding_buffer[..required_size].fill(0);
         }
 
         flatten::make_contour(
@@ -67,10 +66,10 @@ impl TrueTypeFont {
             base_line: baseline,
         };
 
-        if self.bitmap_buffer.len() < width * height {
-            self.bitmap_buffer = vec![0_u8; width * height];
+        if self.bitmap_buffer.len() < required_size {
+            self.bitmap_buffer.resize(required_size, 0);
         } else {
-            self.bitmap_buffer[..width * height].fill(0);
+            self.bitmap_buffer[..required_size].fill(0);
         }
 
         filler(width, height, &self.winding_buffer, &mut self.bitmap_buffer);
