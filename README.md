@@ -24,7 +24,7 @@ fn main() {
     // Render a character!
     let (metrics, bitmap) = font.get_char::<false>('A', 16);
     
-    //Enable the built-in cache
+    //Enable built-in glyph caching
     let (metrics, bitmap) = font.get_char::<true>('B', 16);
     //                                      ^^^^
 }
@@ -54,8 +54,8 @@ Criterion benchmark rendering with NotoSansSC-Medium:
 | 24pt | **203µs** | 1.48ms | 3.75ms | 2.60ms |
 | 48pt | **250µs** | 1.89ms | 5.12ms | 6.00ms |
 | 72pt | **1.00ms** | 4.20ms | 10.22ms | 10.55ms |
-| 120pt | **806.57µs** | 7.63ms | 17.022ms | 14.7ms |
-| 250pt | **4.6ms** | 29.36ms | 50.18ms | 50.51ms |
+| 120pt | **806.57µs** | 7.63ms | 17.02ms | 14.73ms |
+| 250pt | **4.62ms** | 29.36ms | 50.18ms | 50.51ms |
 
 **The performance gap widens with batch size.** While competitors slow down exponentially, TitanF maintains near-constant per-character performance up until 1-10 million glyphs.
 
@@ -114,9 +114,7 @@ cargo bench
 
 ## License
 
-licensed under MIT
-
-See [LICENSE-MIT](LICENSE-MIT) for details.
+Licensed under the [MIT License](LICENSE-MIT).
 
 ---
 
@@ -129,11 +127,9 @@ Please open an issue or PR on GitHub.
 ---
 
 <div align="center">
-  
-  **TitanF: Built for speed. Designed for scale. Zero compromises.**
-  
-  <sub> Pure Rust  •  Zero Dependencies  •  no_std</sub>
-  
+  <strong>TitanF:</strong> Built for speed • Designed for scale • Zero compromises  
+  <br><sub>🦀 Pure Rust • 📦 Zero Dependencies • ⚙️ no_std Compatible</sub>
 </div>
+
 
 
