@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/Hoteira/titan-f/tree/master/img/icon.png" alt="TitanF Logo" width="120" height="120">
+  <img src="https://raw.githubusercontent.com/Hoteira/titan-f/refs/heads/master/img/icon.png" alt="TitanF Logo" width="120" height="120">
   
   # TitanF
   
