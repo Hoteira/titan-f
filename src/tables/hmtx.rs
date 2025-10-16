@@ -2,19 +2,19 @@ use crate::font::TrueTypeFont;
 use crate::Vec;
 
 #[derive(Debug, Clone)]
-pub struct HmtxTable {
-    pub h_metrics: Vec<LongHorMetric>,
-    pub left_side_bearings: Vec<i16>,
+pub (crate)struct HmtxTable {
+    pub(crate) h_metrics: Vec<LongHorMetric>,
+    pub(crate) left_side_bearings: Vec<i16>,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct LongHorMetric {
-    pub advance_width: u16,
-    pub left_side_bearing: i16,
+pub(crate) struct LongHorMetric {
+    pub(crate) advance_width: u16,
+    pub(crate) left_side_bearing: i16,
 }
 
 impl HmtxTable {
-    pub fn new() -> HmtxTable {
+    pub(crate) fn new() -> HmtxTable {
         HmtxTable {
             h_metrics: Vec::new(),
             left_side_bearings: Vec::new(),
@@ -24,7 +24,7 @@ impl HmtxTable {
 
 impl TrueTypeFont {
 
-    pub fn load_hmtx(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn load_hmtx(&mut self, font_bytes: &[u8]) {
         for table in &self.tables {
             if table.table_tag == "hmtx".as_bytes() {
                 let table_offset = table.offset as usize;
@@ -63,7 +63,7 @@ impl TrueTypeFont {
     }
 
 
-    pub fn get_metrics(&self, glyph_id: &u32, scale: f32) -> (usize, isize) {
+    pub(crate) fn get_metrics(&self, glyph_id: &u32, scale: f32) -> (usize, isize) {
         let idx = *glyph_id as usize;
 
         if idx < self.hmtx.h_metrics.len() {

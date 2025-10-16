@@ -1,3 +1,3 @@
-pub mod flatten;
-pub mod fill;
-pub mod point;
+pub(crate) mod flatten;
+pub(crate) mod fill;
+pub(crate) mod point;

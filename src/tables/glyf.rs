@@ -6,55 +6,55 @@ use crate::tables::loca::LocaTable;
 
 use crate::Vec;
 
-pub const WE_HAVE_A_SCALE: u16 = 0x0008;
-pub const WE_HAVE_AN_X_AND_Y_SCALE: u16 = 0x0040;
-pub const WE_HAVE_A_TWO_BY_TWO: u16 = 0x0080;
-pub const ARGS_ARE_XY_VALUES: u16 = 0x0002;
+pub(crate) const WE_HAVE_A_SCALE: u16 = 0x0008;
+pub(crate) const WE_HAVE_AN_X_AND_Y_SCALE: u16 = 0x0040;
+pub(crate) const WE_HAVE_A_TWO_BY_TWO: u16 = 0x0080;
+pub(crate) const ARGS_ARE_XY_VALUES: u16 = 0x0002;
 const ARGS_ARE_WORDS: u16 = 0x0001;
 const MORE_COMPONENTS: u16 = 0x0020;
 const WE_HAVE_INSTRUCTIONS: u16 = 0x0100;
 const ROUND_XY_TO_GRID: u16 = 0x0004;
 
 #[derive(Debug, Clone)]
-pub struct SimpleGlyph {
-    pub _number_of_contours: i16,
-    pub x_min: i16,
-    pub y_min: i16,
-    pub x_max: i16,
-    pub y_max: i16,
-    pub end_pts_of_contours: Vec<u16>,
-    pub instruction_length: u16,
-    pub instructions: Vec<u8>,
-    pub flags: Vec<u8>,
-    pub x_coordinates: Vec<i16>,
-    pub y_coordinates: Vec<i16>,
-    pub points: Vec<Contour>,
+pub(crate) struct SimpleGlyph {
+    pub(crate) _number_of_contours: i16,
+    pub(crate) x_min: i16,
+    pub(crate) y_min: i16,
+    pub(crate) x_max: i16,
+    pub(crate) y_max: i16,
+    pub(crate) end_pts_of_contours: Vec<u16>,
+    pub(crate) instruction_length: u16,
+    pub(crate) instructions: Vec<u8>,
+    pub(crate) flags: Vec<u8>,
+    pub(crate) x_coordinates: Vec<i16>,
+    pub(crate) y_coordinates: Vec<i16>,
+    pub(crate) points: Vec<Contour>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CompositeGlyph {
-    pub number_of_contours: i16,
-    pub x_min: i16,
-    pub y_min: i16,
-    pub x_max: i16,
-    pub y_max: i16,
-    pub components: Vec<CompositeComponent>,
-    pub end_pts_of_contours: Vec<u16>,
-    pub instructions: Vec<u8>,
-    pub points: Vec<Contour>,
+pub(crate) struct CompositeGlyph {
+    pub(crate) number_of_contours: i16,
+    pub(crate) x_min: i16,
+    pub(crate) y_min: i16,
+    pub(crate) x_max: i16,
+    pub(crate) y_max: i16,
+    pub(crate) components: Vec<CompositeComponent>,
+    pub(crate) end_pts_of_contours: Vec<u16>,
+    pub(crate) instructions: Vec<u8>,
+    pub(crate) points: Vec<Contour>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CompositeComponent {
-    pub flags: u16,
-    pub glyph_index: u16,
-    pub argument1: i16,
-    pub argument2: i16,
-    pub scale: Option<f32>,
-    pub x_scale: Option<f32>,
-    pub y_scale: Option<f32>,
-    pub scale_01: Option<f32>,
-    pub scale_10: Option<f32>,
+pub(crate) struct CompositeComponent {
+    pub(crate) flags: u16,
+    pub(crate) glyph_index: u16,
+    pub(crate) argument1: i16,
+    pub(crate) argument2: i16,
+    pub(crate) scale: Option<f32>,
+    pub(crate) x_scale: Option<f32>,
+    pub(crate) y_scale: Option<f32>,
+    pub(crate) scale_01: Option<f32>,
+    pub(crate) scale_10: Option<f32>,
 }
 
 pub struct Glyph {
@@ -66,14 +66,14 @@ pub struct Glyph {
 }
 
 #[derive(Debug, Clone)]
-pub enum ProtoGlyph {
+pub(crate) enum ProtoGlyph {
     Simple(SimpleGlyph),
     Composite(CompositeGlyph),
     Empty,
 }
 
 impl ProtoGlyph {
-    pub fn finalize(&self) -> Glyph {
+    pub(crate) fn finalize(&self) -> Glyph {
         match self {
             Simple(SimpleGlyph { points, x_min, y_min, x_max, y_max, .. }) | Composite(CompositeGlyph { points, x_min, y_min, x_max, y_max, .. }) => {
                 Glyph {
@@ -93,7 +93,7 @@ impl ProtoGlyph {
 }
 
 impl Glyph {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Glyph {
             points: Vec::new(),
             x_min: 0,
@@ -105,7 +105,7 @@ impl Glyph {
 }
 
 impl ProtoGlyph {
-    pub fn get_x_min(&self) -> i16 {
+    pub(crate) fn get_x_min(&self) -> i16 {
         match self {
             ProtoGlyph::Simple(glyph) => glyph.x_min,
             ProtoGlyph::Composite(glyph) => glyph.x_min,
@@ -113,7 +113,7 @@ impl ProtoGlyph {
         }
     }
 
-    pub fn get_x_max(&self) -> i16 {
+    pub(crate) fn get_x_max(&self) -> i16 {
         match self {
             ProtoGlyph::Simple(glyph) => glyph.x_max,
             ProtoGlyph::Composite(glyph) => glyph.x_max,
@@ -121,7 +121,7 @@ impl ProtoGlyph {
         }
     }
 
-    pub fn get_y_min(&self) -> i16 {
+    pub(crate) fn get_y_min(&self) -> i16 {
         match self {
             ProtoGlyph::Simple(glyph) => glyph.y_min,
             ProtoGlyph::Composite(glyph) => glyph.y_min,
@@ -129,7 +129,7 @@ impl ProtoGlyph {
         }
     }
 
-    pub fn get_y_max(&self) -> i16 {
+    pub(crate) fn get_y_max(&self) -> i16 {
         match self {
             ProtoGlyph::Simple(glyph) => glyph.y_max,
             ProtoGlyph::Composite(glyph) => glyph.y_max,
@@ -137,7 +137,7 @@ impl ProtoGlyph {
         }
     }
 
-    pub fn get_contour_end_points(&self) -> Vec<u16> {
+    pub(crate) fn get_contour_end_points(&self) -> Vec<u16> {
         match self {
             ProtoGlyph::Simple(glyph) => glyph.end_pts_of_contours.clone(),
             ProtoGlyph::Composite(glyph) => glyph.end_pts_of_contours.clone(),
@@ -147,7 +147,7 @@ impl ProtoGlyph {
 }
 
 impl TrueTypeFont {
-    pub fn load_glyf(&mut self) {
+    pub(crate) fn load_glyf(&mut self) {
         for table in &self.tables {
             if table.table_tag == "glyf".as_bytes() {
                 self.glyf = *table;
@@ -159,7 +159,7 @@ impl TrueTypeFont {
         panic!("GLYF table not found");
     }
 
-    pub fn get_glyph(&self, font_bytes: &[u8], glyph_id: u32) -> ProtoGlyph {
+    pub(crate) fn get_glyph(&self, font_bytes: &[u8], glyph_id: u32) -> ProtoGlyph {
         let (start_offset, end_offset) = match &self.loca {
             LocaTable::Short(offsets, ..) => {
                 let start = offsets[glyph_id as usize] as u32 * 2;
@@ -179,15 +179,15 @@ impl TrueTypeFont {
 
         if glyf_length == 0 { return ProtoGlyph::Empty; }
 
-        let contours = get_i16_be(font_bytes.as_ptr(), glyf_offset as isize);
+        let contours = get_i16_be(font_bytes, glyf_offset);
 
         if contours >= 0 {
             let mut glyph = SimpleGlyph {
-                _number_of_contours: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize),
-                x_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 2),
-                y_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 4),
-                x_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 6),
-                y_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 8),
+                _number_of_contours: get_i16_be(font_bytes, glyf_offset),
+                x_min: get_i16_be(font_bytes, glyf_offset + 2),
+                y_min: get_i16_be(font_bytes, glyf_offset + 4),
+                x_max: get_i16_be(font_bytes, glyf_offset + 6),
+                y_max: get_i16_be(font_bytes, glyf_offset + 8),
                 end_pts_of_contours: Vec::new(),
                 instruction_length: 0,
                 instructions: Vec::new(),
@@ -199,12 +199,12 @@ impl TrueTypeFont {
 
             let mut offset = glyf_offset + 10;
             for _i in 0..glyph._number_of_contours as usize {
-                let contour = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                let contour = get_u16_be(font_bytes, offset);
                 glyph.end_pts_of_contours.push(contour);
                 offset += 2;
             }
 
-            glyph.instruction_length = get_u16_be(font_bytes.as_ptr(), offset as isize);
+            glyph.instruction_length = get_u16_be(font_bytes, offset);
             offset += 2;
 
             glyph.instructions.extend_from_slice(&font_bytes[offset..offset + glyph.instruction_length as usize]);
@@ -253,7 +253,7 @@ impl TrueTypeFont {
                         x_coord -= delta;
                     }
                 } else if flag & 0x10 == 0 {
-                    let delta = get_i16_be(font_bytes.as_ptr(), offset as isize);
+                    let delta = get_i16_be(font_bytes, offset);
                     offset += 2;
                     x_coord += delta;
                 }
@@ -275,7 +275,7 @@ impl TrueTypeFont {
                     }
 
                 } else if flag & 0x20 == 0 {
-                    let delta = get_i16_be(font_bytes.as_ptr(), offset as isize);
+                    let delta = get_i16_be(font_bytes, offset);
                     offset += 2;
                     y_coord += delta;
                 }
@@ -286,11 +286,11 @@ impl TrueTypeFont {
             ProtoGlyph::Simple(glyph)
         } else {
             let mut glyph = CompositeGlyph {
-                number_of_contours: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize),
-                x_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 2),
-                y_min: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 4),
-                x_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 6),
-                y_max: get_i16_be(font_bytes.as_ptr(), glyf_offset as isize + 8),
+                number_of_contours: get_i16_be(font_bytes, glyf_offset),
+                x_min: get_i16_be(font_bytes, glyf_offset + 2),
+                y_min: get_i16_be(font_bytes, glyf_offset + 4),
+                x_max: get_i16_be(font_bytes, glyf_offset + 6),
+                y_max: get_i16_be(font_bytes, glyf_offset + 8),
                 components: Vec::new(),
                 instructions: Vec::new(),
                 end_pts_of_contours: Vec::new(),
@@ -300,10 +300,10 @@ impl TrueTypeFont {
             let mut offset = glyf_offset + 10;
 
             loop {
-                let flags = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                let flags = get_u16_be(font_bytes, offset);
                 offset += 2;
 
-                let glyph_index = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                let glyph_index = get_u16_be(font_bytes, offset);
                 offset += 2;
 
                 let mut component = CompositeComponent {
@@ -319,8 +319,8 @@ impl TrueTypeFont {
                 };
 
                 if flags & ARGS_ARE_WORDS != 0 {
-                    component.argument1 = get_i16_be(font_bytes.as_ptr(), offset as isize);
-                    component.argument2 = get_i16_be(font_bytes.as_ptr(), offset as isize + 2);
+                    component.argument1 = get_i16_be(font_bytes, offset);
+                    component.argument2 = get_i16_be(font_bytes, offset + 2);
                     offset += 4;
                 } else {
                     component.argument1 = font_bytes[offset] as i8 as i16;
@@ -329,17 +329,17 @@ impl TrueTypeFont {
                 }
 
                 if flags & WE_HAVE_A_SCALE != 0 {
-                    component.scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
+                    component.scale = Some(get_i16_be(font_bytes, offset) as f32 / 16384.0);
                     offset += 2;
                 } else if flags & WE_HAVE_AN_X_AND_Y_SCALE != 0 {
-                    component.x_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
-                    component.y_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
+                    component.x_scale = Some(get_i16_be(font_bytes, offset) as f32 / 16384.0);
+                    component.y_scale = Some(get_i16_be(font_bytes, offset) as f32 / 16384.0);
                     offset += 4;
                 } else if flags & WE_HAVE_A_TWO_BY_TWO != 0 {
-                    component.x_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize) as f32 / 16384.0);
-                    component.scale_01 = Some(get_i16_be(font_bytes.as_ptr(), offset as isize + 2) as f32 / 16384.0);
-                    component.scale_10 = Some(get_i16_be(font_bytes.as_ptr(), offset as isize + 4) as f32 / 16384.0);
-                    component.y_scale = Some(get_i16_be(font_bytes.as_ptr(), offset as isize + 6) as f32 / 16384.0);
+                    component.x_scale = Some(get_i16_be(font_bytes, offset) as f32 / 16384.0);
+                    component.scale_01 = Some(get_i16_be(font_bytes, offset + 2) as f32 / 16384.0);
+                    component.scale_10 = Some(get_i16_be(font_bytes, offset + 4) as f32 / 16384.0);
+                    component.y_scale = Some(get_i16_be(font_bytes, offset + 6) as f32 / 16384.0);
                     offset += 8;
                 }
 
@@ -351,7 +351,7 @@ impl TrueTypeFont {
             }
 
             if !glyph.components.is_empty() && glyph.components.last().unwrap().flags & WE_HAVE_INSTRUCTIONS != 0 {
-                let instruction_length = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                let instruction_length = get_u16_be(font_bytes, offset);
                 offset += 2;
 
                 for i in 0..instruction_length as usize {
@@ -363,7 +363,7 @@ impl TrueTypeFont {
         }
     }
 
-    pub fn cache_all_glyphs(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn cache_all_glyphs(&mut self, font_bytes: &[u8]) {
         match &self.cmap.subtables[0] {
 
             Format0 { data, .. } => {

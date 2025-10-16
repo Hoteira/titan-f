@@ -13,25 +13,25 @@ use crate::F32NoStd;
 use crate::font::TrueTypeFont;
 
 #[derive(Debug, Copy, Clone)]
-pub struct Point {
-    pub x: i16,
-    pub y: i16,
-    pub on_curve: bool,
+pub(crate) struct Point {
+    pub(crate) x: i16,
+    pub(crate) y: i16,
+    pub(crate) on_curve: bool,
 }
 
 #[derive(Debug, Clone)]
-pub struct Contour {
-    pub points: Vec<Point>,
+pub(crate) struct Contour {
+    pub(crate) points: Vec<Point>,
 }
 
 impl Contour {
-    pub fn new(size: usize) -> Self {
+    pub(crate) fn new(size: usize) -> Self {
         Contour { points: Vec::with_capacity(size) }
     }
 }
 
 impl TrueTypeFont {
-    pub fn load_points(&self, glyph: &mut ProtoGlyph, font: &TrueTypeFont, font_bytes: &[u8]) -> Glyph {
+    pub(crate) fn load_points(&self, glyph: &mut ProtoGlyph, font: &TrueTypeFont, font_bytes: &[u8]) -> Glyph {
         match glyph {
             ProtoGlyph::Simple(g) => {
                 let num_points = g.end_pts_of_contours.last().map(|&e| (e + 1) as usize).unwrap_or(0);
@@ -82,7 +82,7 @@ impl TrueTypeFont {
     }
 }
 
-pub fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeComponent>, font: &TrueTypeFont, font_bytes: &[u8]) {
+pub(crate) fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeComponent>, font: &TrueTypeFont, font_bytes: &[u8]) {
     for component in comps.iter() {
         let real_glyph = &mut font.get_glyph(font_bytes, component.glyph_index as u32);
 
@@ -132,7 +132,7 @@ pub fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeComponen
     }
 }
 
-pub fn insert_midpoints(points: &mut Vec<Contour>) {
+pub(crate) fn insert_midpoints(points: &mut Vec<Contour>) {
     for contour in points.iter_mut() {
 
         if contour.points.len() <= 1 {

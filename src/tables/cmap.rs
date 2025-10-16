@@ -133,8 +133,8 @@ impl TrueTypeFont {
             if table.table_tag == "cmap".as_bytes() {
                 self.cmap.offset = table.offset as usize;
                 self.cmap.header = CmapHeader {
-                    _version: get_u16_be(font_bytes.as_ptr(), self.cmap.offset as isize),
-                    num_tables: get_u16_be(font_bytes.as_ptr(), self.cmap.offset as isize + 2),
+                    _version: get_u16_be(font_bytes, self.cmap.offset),
+                    num_tables: get_u16_be(font_bytes, self.cmap.offset + 2),
                 };
                 return;
             }
@@ -147,9 +147,9 @@ impl TrueTypeFont {
         let mut offset = self.cmap.offset + size_of::<CmapHeader>();
         for _ in 0..self.cmap.header.num_tables {
             let record = EncodingRecord {
-                platform_id: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                encoding_id: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                offset: get_u32_be(font_bytes.as_ptr(), offset as isize + 4),
+                platform_id: get_u16_be(font_bytes, offset),
+                encoding_id: get_u16_be(font_bytes, offset + 2),
+                offset: get_u32_be(font_bytes, offset + 4),
             };
             self.cmap.encodings.push(record);
             offset += size_of::<EncodingRecord>();
@@ -161,7 +161,7 @@ impl TrueTypeFont {
 
             let subtable_offset = self.cmap.offset + encoding.offset as usize;
             let subtable = SubtableFormat {
-                format: get_u16_be(font_bytes.as_ptr(), subtable_offset as isize),
+                format: get_u16_be(font_bytes, subtable_offset),
             };
 
             self.cmap.encoding_formats.push(subtable.format);
@@ -178,9 +178,9 @@ impl TrueTypeFont {
             match sf {
                 0 => {
                     let fmt = CmapFormat0 {
-                        _format: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                        _length: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                        _language: get_u16_be(font_bytes.as_ptr(), offset as isize + 4),
+                        _format: get_u16_be(font_bytes, offset),
+                        _length: get_u16_be(font_bytes, offset + 2),
+                        _language: get_u16_be(font_bytes, offset + 4),
                         glyph_id_array: font_bytes[offset + 6..offset + 262].try_into().unwrap(),
                     };
 
@@ -191,15 +191,15 @@ impl TrueTypeFont {
                     });
                 }
                 4 => {
-                    let seg_count = get_u16_be(font_bytes.as_ptr(), offset as isize + 6) as usize / 2;
+                    let seg_count = get_u16_be(font_bytes, offset + 6) as usize / 2;
                     let mut fmt = CmapFormat4 {
-                        _format: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                        length: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                        _language: get_u16_be(font_bytes.as_ptr(), offset as isize + 4),
+                        _format: get_u16_be(font_bytes, offset),
+                        length: get_u16_be(font_bytes, offset + 2),
+                        _language: get_u16_be(font_bytes, offset + 4),
                         seg_count_x2: (seg_count * 2) as u16,
-                        _search_range: get_u16_be(font_bytes.as_ptr(), offset as isize + 8),
-                        _entry_selector: get_u16_be(font_bytes.as_ptr(), offset as isize + 10),
-                        _range_shift: get_u16_be(font_bytes.as_ptr(), offset as isize + 12),
+                        _search_range: get_u16_be(font_bytes, offset + 8),
+                        _entry_selector: get_u16_be(font_bytes, offset + 10),
+                        _range_shift: get_u16_be(font_bytes, offset + 12),
                         end_count: vec![0; seg_count],
                         reserved_pad: 0,
                         start_count: vec![0; seg_count],
@@ -247,12 +247,12 @@ impl TrueTypeFont {
                 }
                 6 => {
                     let mut fmt = CmapFormat6 {
-                        _format: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                        _length: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                        _language: get_u16_be(font_bytes.as_ptr(), offset as isize + 4),
-                        first_code: get_u16_be(font_bytes.as_ptr(), offset as isize + 6),
-                        entry_count: get_u16_be(font_bytes.as_ptr(), offset as isize + 8),
-                        glyph_id_array: vec![0; get_u16_be(font_bytes.as_ptr(), offset as isize + 8) as usize],
+                        _format: get_u16_be(font_bytes, offset),
+                        _length: get_u16_be(font_bytes, offset + 2),
+                        _language: get_u16_be(font_bytes, offset + 4),
+                        first_code: get_u16_be(font_bytes, offset + 6),
+                        entry_count: get_u16_be(font_bytes, offset + 8),
+                        glyph_id_array: vec![0; get_u16_be(font_bytes, offset + 8) as usize],
                     };
 
                     let mut base_offset = offset + 10;
@@ -269,20 +269,20 @@ impl TrueTypeFont {
                 }
                 12 => {
                     let mut fmt = CmapFormat12 {
-                        _format: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                        _reserved: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                        _length: get_u32_be(font_bytes.as_ptr(), offset as isize + 4),
-                        _language: get_u32_be(font_bytes.as_ptr(), offset as isize + 8),
-                        num_groups: get_u32_be(font_bytes.as_ptr(), offset as isize + 12),
-                        groups: Vec::with_capacity(get_u32_be(font_bytes.as_ptr(), offset as isize + 12) as usize),
+                        _format: get_u16_be(font_bytes, offset),
+                        _reserved: get_u16_be(font_bytes, offset + 2),
+                        _length: get_u32_be(font_bytes, offset + 4),
+                        _language: get_u32_be(font_bytes, offset + 8),
+                        num_groups: get_u32_be(font_bytes, offset + 12),
+                        groups: Vec::with_capacity(get_u32_be(font_bytes, offset + 12) as usize),
                     };
 
                     let mut base_offset = offset + 16;
                     for _ in 0..fmt.num_groups as usize {
                         let smg = SequentialMapGroup {
-                            start_char_code: get_u32_be(font_bytes.as_ptr(), base_offset as isize),
-                            end_char_code: get_u32_be(font_bytes.as_ptr(), base_offset as isize + 4),
-                            start_glyph_id: get_u32_be(font_bytes.as_ptr(), base_offset as isize + 8),
+                            start_char_code: get_u32_be(font_bytes, base_offset),
+                            end_char_code: get_u32_be(font_bytes, base_offset + 4),
+                            start_glyph_id: get_u32_be(font_bytes, base_offset + 8),
                         };
 
                         fmt.groups.push(smg);

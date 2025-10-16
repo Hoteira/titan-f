@@ -7,29 +7,29 @@ use crate::font::{
 };
 
 #[derive(Debug, Copy, Clone)]
-pub struct HeadTable {
-    pub _major_version: u16,
-    pub _minor_version: u16,
-    pub _font_revision: u32,
-    pub _checksum_adjustment: u32,
-    pub _magic_number: u32, // 0x5F0F3CF5
-    pub _flags: u16,
-    pub units_per_em: u16,
-    pub _created: i64,
-    pub modified: i64,
-    pub x_min: i16,
-    pub y_min: i16,
-    pub x_max: i16,
-    pub y_max: i16,
-    pub mac_style: u16,
-    pub lowest_rec_ppem: u16,
-    pub font_direction_hint: i16,
-    pub index_to_loc_format: i16,
-    pub glyph_data_format: i16,
+pub(crate) struct HeadTable {
+    pub(crate) _major_version: u16,
+    pub(crate) _minor_version: u16,
+    pub(crate) _font_revision: u32,
+    pub(crate) _checksum_adjustment: u32,
+    pub(crate) _magic_number: u32, // 0x5F0F3CF5
+    pub(crate) _flags: u16,
+    pub(crate) units_per_em: u16,
+    pub(crate) _created: i64,
+    pub(crate) modified: i64,
+    pub(crate) x_min: i16,
+    pub(crate) y_min: i16,
+    pub(crate) x_max: i16,
+    pub(crate) y_max: i16,
+    pub(crate) mac_style: u16,
+    pub(crate) lowest_rec_ppem: u16,
+    pub(crate) font_direction_hint: i16,
+    pub(crate) index_to_loc_format: i16,
+    pub(crate) glyph_data_format: i16,
 }
 
 impl HeadTable {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         HeadTable {
             _major_version: 0,
             _minor_version: 0,
@@ -54,31 +54,31 @@ impl HeadTable {
 }
 
 impl TrueTypeFont {
-    pub fn load_head(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn load_head(&mut self, font_bytes: &[u8]) {
         for table in &self.tables {
             if table.table_tag == "head".as_bytes() {
 
                 let offset = table.offset as usize;
 
                 self.head = HeadTable {
-                    _major_version: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                    _minor_version: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                    _font_revision: get_u32_be(font_bytes.as_ptr(), offset as isize + 4),
-                    _checksum_adjustment: get_u32_be(font_bytes.as_ptr(), offset as isize + 8),
-                    _magic_number: get_u32_be(font_bytes.as_ptr(), offset as isize + 12),
-                    _flags: get_u16_be(font_bytes.as_ptr(), offset as isize + 16),
-                    units_per_em: get_u16_be(font_bytes.as_ptr(), offset as isize + 18),
-                    _created: get_i64_be(font_bytes.as_ptr(), offset as isize + 20),
-                    modified: get_i64_be(font_bytes.as_ptr(), offset as isize + 28),
-                    x_min: get_i16_be(font_bytes.as_ptr(), offset as isize + 36),
-                    y_min: get_i16_be(font_bytes.as_ptr(), offset as isize + 38),
-                    x_max: get_i16_be(font_bytes.as_ptr(), offset as isize + 40),
-                    y_max: get_i16_be(font_bytes.as_ptr(), offset as isize + 42),
-                    mac_style: get_u16_be(font_bytes.as_ptr(), offset as isize + 44),
-                    lowest_rec_ppem: get_u16_be(font_bytes.as_ptr(), offset as isize + 46),
-                    font_direction_hint: get_i16_be(font_bytes.as_ptr(), offset as isize + 48),
-                    index_to_loc_format: get_i16_be(font_bytes.as_ptr(), offset as isize + 50),
-                    glyph_data_format: get_i16_be(font_bytes.as_ptr(), offset as isize + 52),
+                    _major_version: get_u16_be(font_bytes, offset),
+                    _minor_version: get_u16_be(font_bytes, offset + 2),
+                    _font_revision: get_u32_be(font_bytes, offset + 4),
+                    _checksum_adjustment: get_u32_be(font_bytes, offset + 8),
+                    _magic_number: get_u32_be(font_bytes, offset + 12),
+                    _flags: get_u16_be(font_bytes, offset + 16),
+                    units_per_em: get_u16_be(font_bytes, offset + 18),
+                    _created: get_i64_be(font_bytes, offset + 20),
+                    modified: get_i64_be(font_bytes, offset + 28),
+                    x_min: get_i16_be(font_bytes, offset + 36),
+                    y_min: get_i16_be(font_bytes, offset + 38),
+                    x_max: get_i16_be(font_bytes, offset + 40),
+                    y_max: get_i16_be(font_bytes, offset + 42),
+                    mac_style: get_u16_be(font_bytes, offset + 44),
+                    lowest_rec_ppem: get_u16_be(font_bytes, offset + 46),
+                    font_direction_hint: get_i16_be(font_bytes, offset + 48),
+                    index_to_loc_format: get_i16_be(font_bytes, offset + 50),
+                    glyph_data_format: get_i16_be(font_bytes, offset + 52),
                 };
 
                 return;

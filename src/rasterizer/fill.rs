@@ -1,6 +1,5 @@
-use crate::Vec;
 
-pub fn filler(width: usize, height: usize, windings: &[i16], bitmap: &mut [u8]) {
+pub(crate) fn filler(width: usize, height: usize, windings: &[i16], bitmap: &mut [u8]) {
 
     if windings.len() == 0 {
         return;

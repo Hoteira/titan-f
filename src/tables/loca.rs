@@ -7,13 +7,13 @@ use crate::font::{
 use crate::Vec;
 
 #[derive(Debug)]
-pub enum LocaTable {
+pub(crate) enum LocaTable {
     Short(Vec<u16>),
     Long(Vec<u32>)
 }
 
 impl TrueTypeFont {
-    pub fn load_loca(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn load_loca(&mut self, font_bytes: &[u8]) {
         for table in &self.tables {
             if table.table_tag == "loca".as_bytes() {
 
@@ -23,7 +23,7 @@ impl TrueTypeFont {
 
                         for i in 0..(self.maxp.num_glyphs as usize + 1) {
                             let offset = table.offset as usize + i * 2;
-                            let delta = get_u16_be(font_bytes.as_ptr(), offset as isize);
+                            let delta = get_u16_be(font_bytes, offset);
                             loca.push(delta);
                         }
 
@@ -35,7 +35,7 @@ impl TrueTypeFont {
 
                         for i in 0..(self.maxp.num_glyphs as usize + 1) {
                             let offset = table.offset as usize + i * 4;
-                            let delta = get_u32_be(font_bytes.as_ptr(), offset as isize);
+                            let delta = get_u32_be(font_bytes, offset);
                             loca.push(delta);
                         }
 

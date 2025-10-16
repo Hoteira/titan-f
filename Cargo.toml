@@ -1,8 +1,22 @@
 [package]
 name = "titanf"
-authors = ["hoteira"]
 version = "0.1.0"
+authors = ["Hoteira <hoteira@proton.me"]
 edition = "2024"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Hoteira/titan-f"
+description = "Blazingly fast, no_std compatible font rasterizer written in pure Rust"
+keywords = ["font", "rasterizer", "truetype", "rendering", "text"]
+categories = ["graphics", "rendering", "no-std"]
+
+exclude = [
+    "img/*",
+    "benches/*",
+    ".github/*",
+    "target/*"
+]
+
 
 [lib]
 name = "titanf"

@@ -5,7 +5,7 @@ use crate::font::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub struct HheaTable {
+pub(crate) struct HheaTable {
     pub major_version: u16,
     pub minor_version: u16,
     pub ascender: i16,
@@ -27,7 +27,7 @@ pub struct HheaTable {
 }
 
 impl HheaTable {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         HheaTable {
             major_version: 0,
             minor_version: 0,
@@ -52,29 +52,29 @@ impl HheaTable {
 }
 
 impl TrueTypeFont {
-    pub fn load_hhea(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn load_hhea(&mut self, font_bytes: &[u8]) {
         for table in &self.tables {
             if table.table_tag == "hhea".as_bytes() {
                 let offset = table.offset as usize;
                 self.hhea = HheaTable {
-                    major_version: get_u16_be(font_bytes.as_ptr(), offset as isize),
-                    minor_version: get_u16_be(font_bytes.as_ptr(), offset as isize + 2),
-                    ascender: get_i16_be(font_bytes.as_ptr(), offset as isize + 4),
-                    descender: get_i16_be(font_bytes.as_ptr(), offset as isize + 6),
-                    line_gap: get_i16_be(font_bytes.as_ptr(), offset as isize + 8),
-                    advance_width_max: get_u16_be(font_bytes.as_ptr(), offset as isize + 10),
-                    min_left_side_bearing: get_i16_be(font_bytes.as_ptr(), offset as isize + 12),
-                    min_right_side_bearing: get_i16_be(font_bytes.as_ptr(), offset as isize + 14),
-                    x_max_extent: get_i16_be(font_bytes.as_ptr(), offset as isize + 16),
-                    caret_slope_rise: get_i16_be(font_bytes.as_ptr(), offset as isize + 18),
-                    caret_slope_run: get_i16_be(font_bytes.as_ptr(), offset as isize + 20),
-                    caret_offset: get_i16_be(font_bytes.as_ptr(), offset as isize + 22),
-                    reserved1: get_i16_be(font_bytes.as_ptr(), offset as isize + 24),
-                    reserved2: get_i16_be(font_bytes.as_ptr(), offset as isize + 26),
-                    reserved3: get_i16_be(font_bytes.as_ptr(), offset as isize + 28),
-                    reserved4: get_i16_be(font_bytes.as_ptr(), offset as isize + 30),
-                    metric_data_format: get_i16_be(font_bytes.as_ptr(), offset as isize + 32),
-                    number_of_h_metrics:get_u16_be(font_bytes.as_ptr(), offset as isize + 34),
+                    major_version: get_u16_be(font_bytes, offset),
+                    minor_version: get_u16_be(font_bytes, offset + 2),
+                    ascender: get_i16_be(font_bytes, offset + 4),
+                    descender: get_i16_be(font_bytes, offset + 6),
+                    line_gap: get_i16_be(font_bytes, offset + 8),
+                    advance_width_max: get_u16_be(font_bytes, offset + 10),
+                    min_left_side_bearing: get_i16_be(font_bytes, offset + 12),
+                    min_right_side_bearing: get_i16_be(font_bytes, offset + 14),
+                    x_max_extent: get_i16_be(font_bytes, offset + 16),
+                    caret_slope_rise: get_i16_be(font_bytes, offset + 18),
+                    caret_slope_run: get_i16_be(font_bytes, offset + 20),
+                    caret_offset: get_i16_be(font_bytes, offset + 22),
+                    reserved1: get_i16_be(font_bytes, offset + 24),
+                    reserved2: get_i16_be(font_bytes, offset + 26),
+                    reserved3: get_i16_be(font_bytes, offset + 28),
+                    reserved4: get_i16_be(font_bytes, offset + 30),
+                    metric_data_format: get_i16_be(font_bytes, offset + 32),
+                    number_of_h_metrics:get_u16_be(font_bytes, offset + 34),
                 };
 
                 return;

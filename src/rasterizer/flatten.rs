@@ -2,7 +2,7 @@ use crate::rasterizer::point::{Contour, Point};
 use crate::F32NoStd;
 
 #[inline(always)]
-pub fn make_contour(
+pub(crate) fn make_contour(
     points: &[Contour],
     scale: f32,
     y_max: f32,
@@ -39,9 +39,9 @@ pub fn make_contour(
                 let dy = p1y - p0y;
                 if dy * dy >= 1e-12 {
                     if p0y < p1y {
-                        draw_line_fixed(p0x, p0y, p1x, p1y, 1.0, width, width_f, height_i32, winding);
+                        draw_line(p0x, p0y, p1x, p1y, 1.0, width, width_f, height_i32, winding);
                     } else {
-                        draw_line_fixed(p1x, p1y, p0x, p0y, -1.0, width, width_f, height_i32, winding);
+                        draw_line(p1x, p1y, p0x, p0y, -1.0, width, width_f, height_i32, winding);
                     }
                 }
             } else if !current.on_curve {
@@ -51,7 +51,7 @@ pub fn make_contour(
                     &contour.points[num_points - 1]
                 };
 
-                flatten_quadratic_optimized(
+                flatten_quadratic(
                     previous, current, next, scale, scale_y_max, x_offset,
                     width, width_f, height_i32, winding
                 );
@@ -61,7 +61,7 @@ pub fn make_contour(
 }
 
 #[inline(always)]
-fn flatten_quadratic_optimized(
+fn flatten_quadratic(
     p0: &Point, p1: &Point, p2: &Point,
     scale: f32, scale_y_max: f32, x_offset: f32,
     width: usize, width_f: f32, height_i32: i32,
@@ -100,9 +100,9 @@ fn flatten_quadratic_optimized(
         let seg_dy = y - prev_y;
         if seg_dy * seg_dy > 1e-12 {
             if prev_y < y {
-                draw_line_fixed(prev_x, prev_y, x, y, 1.0, width, width_f, height_i32, winding);
+                draw_line(prev_x, prev_y, x, y, 1.0, width, width_f, height_i32, winding);
             } else {
-                draw_line_fixed(x, y, prev_x, prev_y, -1.0, width, width_f, height_i32, winding);
+                draw_line(x, y, prev_x, prev_y, -1.0, width, width_f, height_i32, winding);
             }
         }
 
@@ -114,7 +114,7 @@ fn flatten_quadratic_optimized(
 }
 
 #[inline(always)]
-fn draw_line_fixed(
+fn draw_line(
     x0: f32, y0: f32,
     x1: f32, y1: f32,
     dir: f32,

@@ -21,25 +21,25 @@ use crate::tables::loca::LocaTable;
 use crate::tables::maxp::MaxpTable;
 
 #[derive(Copy, Clone, Debug)]
-pub struct OffsetTable {
-    pub _scaler_type: u32,
-    pub num_tables: u16,
-    pub _search_range: u16,
-    pub _entry_selector: u16,
-    pub _range_shift: u16,
+pub(crate) struct OffsetTable {
+    pub(crate) _scaler_type: u32,
+    pub(crate) num_tables: u16,
+    pub(crate) _search_range: u16,
+    pub(crate) _entry_selector: u16,
+    pub(crate) _range_shift: u16,
 }
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
-pub struct TableRecord {
-    pub table_tag: [u8; 4],
-    pub check_sum: u32,
-    pub offset: u32,
-    pub length: u32,
+pub(crate) struct TableRecord {
+    pub(crate) table_tag: [u8; 4],
+    pub(crate) check_sum: u32,
+    pub(crate) offset: u32,
+    pub(crate) length: u32,
 }
 
 impl TableRecord {
-    pub fn new() -> TableRecord {
+    pub(crate) fn new() -> TableRecord {
         TableRecord {
             table_tag: [0; 4],
             check_sum: 0,
@@ -51,18 +51,18 @@ impl TableRecord {
 
 
 pub struct TrueTypeFont {
-    pub offset_table: OffsetTable,
-    pub tables: Vec<TableRecord>,
-    pub cmap: CmapTable,
-    pub head: HeadTable,
-    pub loca: LocaTable,
-    pub maxp: MaxpTable,
-    pub glyf: TableRecord,
-    pub hhea: HheaTable,
-    pub hmtx: HmtxTable,
+    pub(crate) offset_table: OffsetTable,
+    pub(crate) tables: Vec<TableRecord>,
+    pub(crate) cmap: CmapTable,
+    pub(crate) head: HeadTable,
+    pub(crate) loca: LocaTable,
+    pub(crate) maxp: MaxpTable,
+    pub(crate) glyf: TableRecord,
+    pub(crate) hhea: HheaTable,
+    pub(crate) hmtx: HmtxTable,
 
-    pub glyph_data_table: Map<u32, Glyph>,
-    pub glyph_id_table: Map<char, u32>,
+    pub(crate) glyph_data_table: Map<u32, Glyph>,
+    pub(crate) glyph_id_table: Map<char, u32>,
     pub kern_table: Map<(u32, u32), i16>,
 
     pub cache: crate::cache::Cache,
@@ -74,7 +74,7 @@ pub struct TrueTypeFont {
 
 
 impl OffsetTable {
-    pub fn new() -> OffsetTable {
+    pub(crate) fn new() -> OffsetTable {
         OffsetTable {
             _scaler_type: 0,
             num_tables: 0,
@@ -86,7 +86,7 @@ impl OffsetTable {
 }
 
 impl TrueTypeFont {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         TrueTypeFont {
             offset_table: OffsetTable::new(),
             tables: Vec::new(),
@@ -109,29 +109,29 @@ impl TrueTypeFont {
         }
     }
 
-    pub fn load_offset_table(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn load_offset_table(&mut self, font_bytes: &[u8]) {
         if font_bytes.len() >= 12 {
             self.offset_table = OffsetTable {
-                _scaler_type: get_u32_be(font_bytes.as_ptr(), 0),
-                num_tables: get_u16_be(font_bytes.as_ptr(), 4),
-                _search_range: get_u16_be(font_bytes.as_ptr(), 6),
-                _entry_selector: get_u16_be(font_bytes.as_ptr(), 8),
-                _range_shift: get_u16_be(font_bytes.as_ptr(), 10),
+                _scaler_type: get_u32_be(font_bytes, 0),
+                num_tables: get_u16_be(font_bytes, 4),
+                _search_range: get_u16_be(font_bytes, 6),
+                _entry_selector: get_u16_be(font_bytes, 8),
+                _range_shift: get_u16_be(font_bytes, 10),
             }
         } else {
             panic!("Invalid font file");
         }
     }
 
-    pub fn load_tables(&mut self, font_bytes: &[u8]) {
+    pub(crate) fn load_tables(&mut self, font_bytes: &[u8]) {
         let mut offset = size_of::<OffsetTable>();
 
         for _i in 0..self.offset_table.num_tables {
             let table = TableRecord {
                 table_tag: [font_bytes[offset], font_bytes[offset + 1], font_bytes[offset + 2], font_bytes[offset + 3]],
-                check_sum: get_u32_be(font_bytes.as_ptr(), offset as isize + 4),
-                offset: get_u32_be(font_bytes.as_ptr(), offset as isize + 8),
-                length: get_u32_be(font_bytes.as_ptr(), offset as isize + 12),
+                check_sum: get_u32_be(font_bytes, offset + 4),
+                offset: get_u32_be(font_bytes, offset + 8),
+                length: get_u32_be(font_bytes, offset + 12),
             };
 
             self.tables.push(table);
@@ -166,21 +166,25 @@ impl TrueTypeFont {
 }
 
 #[inline]
-pub fn get_u32_be(base: *const u8, offset: isize) -> u32 {
-    unsafe { u32::from_be(read_unaligned(base.offset(offset) as *const u32)) }
+pub fn get_u32_be(base: &[u8], offset: usize) -> u32 {
+    let bytes = &base[offset..offset + 4];
+    u32::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
 }
 
 #[inline]
-pub fn get_u16_be(base: *const u8, offset: isize) -> u16 {
-    unsafe { u16::from_be(read_unaligned(base.offset(offset) as *const u16)) }
+pub fn get_u16_be(base: &[u8], offset: usize) -> u16 {
+    let bytes = &base[offset..offset + 2];
+    u16::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
 }
 
 #[inline]
-pub fn get_i16_be(base: *const u8, offset: isize) -> i16 {
-    unsafe { i16::from_be(read_unaligned(base.offset(offset) as *const i16)) }
+pub fn get_i16_be(base: &[u8], offset: usize) -> i16 {
+    let bytes = &base[offset..offset + 2];
+    i16::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
 }
 
 #[inline]
-pub fn get_i64_be(base: *const u8, offset: isize) -> i64 {
-    unsafe { i64::from_be(read_unaligned(base.offset(offset) as *const i64)) }
+pub fn get_i64_be(base: &[u8], offset: usize) -> i64 {
+    let bytes = &base[offset..offset + 8];
+    i64::from_be_bytes(bytes.try_into().expect("slice with incorrect length"))
 }
