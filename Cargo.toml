@@ -9,6 +9,8 @@ repository = "https://github.com/Hoteira/titan-f"
 description = "Blazingly fast, no_std compatible font rasterizer written in pure Rust"
 keywords = ["font", "rasterizer", "truetype", "rendering", "text"]
 categories = ["graphics", "rendering", "no-std"]
+homepage = "https://github.com/Hoteira/titan-f"
+documentation = "https://docs.rs/titanf"
 
 exclude = [
     "img/*",

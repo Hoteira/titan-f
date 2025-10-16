@@ -333,7 +333,7 @@ impl TrueTypeFont {
                 match data.end_count.binary_search(&(codepoint as u16)) {
                     Ok(i) | Err(i) if i < data.end_count.len() && codepoint as u16 >= data.start_count[i] => {
                         if data.id_range_offset[i] == 0 {
-                            // Direct mapping with delta
+
                             ((codepoint as i32 + data.id_delta[i] as i32) as u32) & 0xFFFF
                         } else {
                             let seg_count = data.seg_count_x2 / 2;
