@@ -39,25 +39,6 @@ titanf = "0.1.1"
 
 ---
 
-
-### Batch Rendering: 1000 Characters (CJK + L)
-
-Criterion benchmark rendering with NotoSansSC-Medium:
-
-| Size | TitanF | fontdue | rusttype | ab_glyph | 
-|------|--------|---------|----------|----------|
-| 12pt | **174µs** | 708µs | 2.71ms | 2.99ms |
-| 16pt | **190µs** | 1.01ms | 3.64ms | 2.99ms |
-| 24pt | **203µs** | 1.48ms | 3.75ms | 2.60ms |
-| 48pt | **250µs** | 1.89ms | 5.12ms | 6.00ms |
-| 72pt | **1.00ms** | 4.20ms | 10.22ms | 10.55ms |
-| 120pt | **806.57µs** | 7.63ms | 17.02ms | 14.73ms |
-| 250pt | **4.62ms** | 29.36ms | 50.18ms | 50.51ms |
-
-**The performance gap widens with batch size.** While competitors slow down exponentially, TitanF maintains near-constant per-character performance up until 1-10 million glyphs.
-
----
-
 ## Why TitanF Is Fast
 
 ### 1. Smart Buffer Reuse
@@ -130,5 +111,6 @@ Please open an issue or PR on GitHub.
 
 
 <br>
+
 
 
