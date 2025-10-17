@@ -1,4 +1,6 @@
 <div align="center">
+  <br>
+  <br>
   <img src="https://raw.githubusercontent.com/Hoteira/titan-f/refs/heads/master/img/icon.png" alt="TitanF Logo" width="120" height="120">
   
   # TitanF
@@ -39,35 +41,11 @@ titanf = "0.1.1"
 
 ---
 
-## Why TitanF Is Fast
-
-### 1. Smart Buffer Reuse
-- Buffers allocated **once per font instance**
-- Same-sized glyphs: just `memset` and reuse (near-zero cost)
-- Larger glyphs: grow buffer once, never shrink
-- **Result: Zero allocation overhead after warmup**
-
-### 2. Cache-Optimal Memory Layout
-- Sequential memory access patterns
-- No pointer chasing or indirection
-- CPU prefetcher works perfectly
-- Data stays hot in L1/L2 cache
-
-### 3. Simple, Predictable Algorithm
-- Winding number algorithm with single-pass filling
-- No complex data structures
-- Branch predictor loves it
-- Compiler can optimize aggressively
-
----
-
 ## Features
 
-- 🚀 **Blazingly Fast** 
-- 📈 **Linear Scaling** — Performance doesn't "blow up" whether rendering 10 or 10 million glyphs
+- 🚀 **Fast** 
 - 🦀 **Zero Dependencies** — Pure Rust, no external crates
 - 📦 **`no_std` Compatible** — Originally built for my own OS, it works fine in baremetal environments (just needs `alloc`)
-- 🎨 **Subpixel Anti-aliasing** — Smooth, high-quality glyph rendering
 - 💯 **Stable Rust** — No nightly features, no unsafe code
 - 🔧 **Built-in TrueType Parser** — Handles CMAP, GLYF, HEAD, HHEA, HMTX, KERN, LOCA, MAXP and keeps it dependency free
 
@@ -105,12 +83,11 @@ Please open an issue or PR on GitHub.
 ---
 
 <div align="center">
-  <strong>TitanF:</strong> Built for speed • Designed for scale • Zero compromises  
   <br><sub>🦀 Pure Rust • 📦 Zero Dependencies • ⚙️ no_std Compatible</sub>
 </div>
 
 
 <br>
-
+<br>
 
 

@@ -100,7 +100,7 @@ pub(crate) fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeC
                     } else {
                         (g.end_pts_of_contours[i] - g.end_pts_of_contours[i - 1]) as usize
                     };
-                    
+
                     let mut contour = Contour::new(contour_size + 1);
 
                     for j in contour_start..=g.end_pts_of_contours[i] as usize {
@@ -110,7 +110,7 @@ pub(crate) fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeC
                             on_curve: expanded_flags[j] & 0x01 != 0,
                         });
                     }
-                    
+
                     if !contour.points.is_empty() {
                         let first_point = contour.points[0];
                         contour.points.push(first_point);
@@ -133,6 +133,9 @@ pub(crate) fn load_from_parent(master: &mut Vec<Contour>, comps: &Vec<CompositeC
 }
 
 pub(crate) fn insert_midpoints(points: &mut Vec<Contour>) {
+
+    fix_degenerate_offcurves(points);
+
     for contour in points.iter_mut() {
 
         if contour.points.len() <= 1 {
@@ -223,4 +226,30 @@ fn expand_flags(raw_flags: &[u8], num_points: usize) -> Vec<u8> {
     }
 
     expanded
+}
+
+fn fix_degenerate_offcurves(contours: &mut Vec<Contour>) {
+    const EPSILON: i16 = 0;
+
+    for contour in contours.iter_mut() {
+        let n = contour.points.len();
+        if n < 2 {
+            continue;
+        }
+
+        for i in 0..n {
+            let next = (i + 1) % n;
+            let (p0, p1) = (contour.points[i], contour.points[next]);
+
+            if !p0.on_curve && !p1.on_curve {
+                let dx = p1.x - p0.x;
+                let dy = p1.y - p0.y;
+
+                if dy.abs() <= EPSILON {
+                    contour.points[i].on_curve = true;
+                    contour.points[next].on_curve = true;
+                }
+            }
+        }
+    }
 }

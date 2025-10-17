@@ -1,9 +1,8 @@
 use crate::font::TrueTypeFont;
-use crate::rasterizer::fill::filler;
 use crate::F32NoStd;
-use crate::rasterizer::flatten;
+use crate::rasterizer::aet::rasterize;
+use crate::rasterizer::point::Contour;
 use crate::Vec;
-use crate::vec;
 
 #[derive(Clone, Debug)]
 pub struct Metrics {
@@ -35,27 +34,11 @@ impl TrueTypeFont {
             .get(&id)
             .unwrap_or(self.glyph_data_table.get(&0).unwrap());
 
-        let width = (((glyph.x_max - glyph.x_min) as f32 * scale) as usize) + 2;
-        let height = (((glyph.y_max - glyph.y_min) as f32 * scale) as usize) + 2;
+        let width = (((glyph.x_max - glyph.x_min) as f32 * scale).ceil() as usize) + 1;
+        let height = (((glyph.y_max - glyph.y_min) as f32 * scale).ceil() as usize) + 1;
         let baseline = -(glyph.y_max as f32 * scale) as isize;
 
         let required_size = width * height;
-
-        if self.winding_buffer.len() < required_size {
-            self.winding_buffer.resize(required_size, 0);
-        } else {
-            self.winding_buffer[..required_size].fill(0);
-        }
-
-        flatten::make_contour(
-            &glyph.points,
-            scale,
-            glyph.y_max as f32,
-            glyph.x_min as f32,
-            width,
-            height,
-            &mut self.winding_buffer,
-        );
 
         let extra = self.get_metrics(id, scale);
         let metrics = Metrics {
@@ -66,13 +49,11 @@ impl TrueTypeFont {
             base_line: baseline,
         };
 
-        if self.bitmap_buffer.len() < required_size {
-            self.bitmap_buffer.resize(required_size, 0);
-        } else {
-            self.bitmap_buffer[..required_size].fill(0);
-        }
+        self.bitmap_buffer.resize(required_size, 0);
+        self.bitmap_buffer[..required_size].fill(0);
 
-        filler(width, height, &self.winding_buffer, &mut self.bitmap_buffer);
+        rasterize(&glyph.points, scale, glyph.y_max as f32, glyph.x_min as f32, width, height, &mut self.bitmap_buffer);
+
 
         if CACHE {
             self.cache.set(*id, size, metrics.clone(), self.bitmap_buffer.clone());
@@ -82,4 +63,23 @@ impl TrueTypeFont {
     }
 }
 
+fn show_points(points: &[Contour], scale: f32, y_max: f32, x_min: f32, width: usize, height: usize, bitmap_buffer: &mut Vec<u8>) {
+    for contour in points {
+        for p in &contour.points {
+            if p.on_curve {
+                let x = ((p.x as f32 - x_min) * scale).round() as isize;
+                let y = ((y_max - p.y as f32) * scale).round() as isize;
+
+                let idx = y as usize * width + x as usize;
+                bitmap_buffer[idx] = 255;
+            } else {
+                let x = ((p.x as f32 - x_min) * scale).round() as isize;
+                let y = ((y_max - p.y as f32) * scale).round() as isize;
+
+                let idx = y as usize * width + x as usize;
+                bitmap_buffer[idx] = 150;
+            }
+        }
+    }
+}
 

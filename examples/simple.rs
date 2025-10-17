@@ -4,12 +4,14 @@ pub fn main() {
     let font_data = include_bytes!("../Roboto-Medium.ttf");
     let mut font = TrueTypeFont::load_font(font_data);
 
-    let (metrics, bitmap) = font.get_char::<false>('A', 16);
+    let (metrics, bitmap) = font.get_char::<false>('n', 48);
     //                                                              ^^^^^ cache disabled
 
+    
+    println!("-----------------------------------------------");
     for i in 0..metrics.height {
         for j in 0..metrics.width {
-            print!("{:02x}", bitmap[i * metrics.width + j]);
+            print!("{:02x} ", bitmap[i * metrics.width + j]);
         }
         println!();
     }
